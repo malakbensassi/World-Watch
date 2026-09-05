@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/chat")
-class AiChatController { // Notice: No 'public' keyword
+class AiChatController {
 
     private final AiChatService aiChatService;
 
@@ -19,7 +19,7 @@ class AiChatController { // Notice: No 'public' keyword
     }
 
     @PostMapping
-    ChatResponse chat(@RequestBody ChatRequest request) {
+    ChatResponse chat(@jakarta.validation.Valid @RequestBody ChatRequest request) {
         return aiChatService.chatAboutCountry(request);
     }
 }

@@ -1,12 +1,15 @@
 package com.worldwatch.config;
 
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 
 import java.time.Instant;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -28,6 +31,28 @@ public class GlobalExceptionHandler {
                 message,
                 path
         );
+    }
+
+    // Erreurs de validation sur un @RequestBody (@Valid + jakarta.validation sur un record/DTO)
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidationBody(MethodArgumentNotValidException ex, WebRequest request) {
+        String message = ex.getBindingResult().getFieldErrors().stream()
+                .map(fe -> fe.getField() + ": " + fe.getDefaultMessage())
+                .collect(Collectors.joining(", "));
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(build(HttpStatus.BAD_REQUEST, message, request));
+    }
+
+    // Erreurs de validation sur des @RequestParam (nécessite @Validated au niveau de la classe du controller)
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse> handleValidationParams(ConstraintViolationException ex, WebRequest request) {
+        String message = ex.getConstraintViolations().stream()
+                .map(v -> v.getPropertyPath() + ": " + v.getMessage())
+                .collect(Collectors.joining(", "));
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(build(HttpStatus.BAD_REQUEST, message, request));
     }
 
     // Auth échoué, username déjà pris, validation métier (AuthServiceImpl, FavoriteServiceImpl)
