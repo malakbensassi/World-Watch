@@ -1,7 +1,8 @@
 package com.worldwatch.ai;
 
-// A public record to hold incoming requests from the frontend
+import jakarta.validation.constraints.NotBlank;
+
 public record ChatRequest(
-        String countryCode,
-        String userMessage
+        @NotBlank(message = "countryCode is required") String countryCode,
+        @NotBlank(message = "userMessage is required") String userMessage
 ) {}
