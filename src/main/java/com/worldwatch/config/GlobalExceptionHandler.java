@@ -65,6 +65,9 @@ public class GlobalExceptionHandler {
     // Filet de sécurité pour toute erreur imprévue (bugs, NPE, etc.)
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneric(Exception ex, WebRequest request) {
+
+        ex.printStackTrace(); // TEMPORARY - debugging only
+
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(build(HttpStatus.INTERNAL_SERVER_ERROR, "Une erreur interne est survenue", request));
