@@ -1,5 +1,9 @@
 # 🌍 WorldWatch — Real-time Global Intelligence & Geopolitical Risk Terminal
 
+[![Live Demo](https://img.shields.io/badge/Live_Demo-GitHub_Pages-06b6d4?style=for-the-badge&logo=github)](https://abdelkrimelwargui.github.io/WorldWatch/)
+
+🔗 **Lien de l'application en direct : [https://abdelkrimelwargui.github.io/WorldWatch/](https://abdelkrimelwargui.github.io/WorldWatch/)**
+
 Application web centralisée fournissant en temps réel les informations clés, les indicateurs macroéconomiques et les risques géopolitiques mondiaux (capitales, devises, PIB, alliances, actualités financières et géopolitiques), avec carte mondiale interactive en matrice de points (*canvas dot map*), système de favoris et analyste IA dédié (Gemini).
 
 Projet PFA — Architecture découplée :
