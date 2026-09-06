@@ -1,153 +1,130 @@
-# World Watch — Backend
+# 🌍 WorldWatch — Real-time Global Intelligence & Geopolitical Risk Terminal
 
-Application web centralisée fournissant en temps réel les informations clés de n'importe quel pays (capitale, population, taux de change, actualités récentes), avec système de favoris personnalisés et chatbot IA dédié.
+[![Live Demo](https://img.shields.io/badge/Live_Demo-GitHub_Pages-06b6d4?style=for-the-badge&logo=github)](https://abdelkrimelwargui.github.io/WorldWatch/)
 
-Projet PFA — Modular Monolith en Java 21 / Spring Boot 3.2.5, architecture package-by-feature avec encapsulation stricte (`internal` packages).
+🔗 **Lien de l'application en direct : [https://abdelkrimelwargui.github.io/WorldWatch/](https://abdelkrimelwargui.github.io/WorldWatch/)**
 
----
+Application web centralisée fournissant en temps réel les informations clés, les indicateurs macroéconomiques et les risques géopolitiques mondiaux (capitales, devises, PIB, alliances, actualités financières et géopolitiques), avec carte mondiale interactive en matrice de points (*canvas dot map*), système de favoris et analyste IA dédié (Gemini).
 
-## 🏗️ Stack technique
-
-| Composant | Techno |
-|---|---|
-| Langage | Java 21 |
-| Framework | Spring Boot 3.2.5 |
-| Base de données | MySQL (via Spring Data JPA / Hibernate) |
-| Auth | Spring Security + JWT (stateless) |
-| Appels HTTP externes | Spring WebFlux (`WebClient`) |
-| IA | Spring AI + Gemini (Google GenAI, `gemini-2.5-flash`) |
-| Config secrets | `spring-dotenv` (fichier `.env` local, jamais commité) |
+Projet PFA — Architecture découplée :
+- **Backend** : Spring Boot 3.2.5 (Java 21), Modular Monolith, Spring Security JWT, Spring AI Gemini, Spring Data JPA / MySQL.
+- **Frontend** : React 18, Vite, Vanilla CSS haute performance (Design Fintech Pro, Dark/Light modes), Canvas HTML5 D3-Geo pour la carte interactive.
 
 ---
 
-## 📦 Modules
+## 🏗️ Architecture & Stack Technique
+
+| Composant | Technologie | Description |
+|---|---|---|
+| **Frontend Framework** | React 18 + Vite | Interface ultra-réactive avec navigation fluide |
+| **Data Viz / Cartographie** | HTML5 Canvas + `d3-geo` + `topojson-client` | Carte mondiale interactive en pointillés haute performance |
+| **Styling** | Vanilla CSS Moderne | Design system sur-mesure Fintech, Glassmorphism, animations fluides |
+| **Backend Framework** | Spring Boot 3.2.5 (Java 21) | Architecture modulaire par fonctionnalité avec encapsulation stricte |
+| **Base de données** | MySQL | Persistance utilisateurs et listes de surveillance / favoris |
+| **Sécurité** | Spring Security + JWT | Authentification sans état (stateless) |
+| **Intelligence Artificielle** | Spring AI + Google Gemini (`gemini-2.5-flash`) | Analyste géopolitique contextuel |
+| **Données Externes** | WebClient / REST APIs | Yahoo Finance, Données pays, Taux de change |
+
+---
+
+## 📦 Organisation du Projet
 
 ```
-com.worldwatch
-├── auth          → inscription, connexion, JWT
-├── countries     → données pays (capitale, population, devise)
-├── favorites     → favoris personnalisés par utilisateur (protégé JWT)
-├── exchange      → taux de change en temps réel
-├── news          → actualités récentes par pays
-├── ai            → chatbot IA avec context stuffing
-└── config        → SecurityConfig, GlobalExceptionHandler, WebClientConfig
+WorldWatch/
+├── frontend/                          → Application React moderne
+│   ├── src/
+│   │   ├── api/                       → Client API (endpoints backend & proxies)
+│   │   ├── components/                → Composants UI
+│   │   │   ├── WorldMap.jsx           → Carte interactive en matrice de points
+│   │   │   ├── LandingPage.jsx        → Page d'accueil Fintech de présentation
+│   │   │   ├── SignInPage.jsx         → Page d'authentification complète
+│   │   │   ├── CountryHero.jsx        → Dossier complet & gouvernance pays
+│   │   │   ├── EconomicsWidget.jsx    → Indicateurs macroéconomiques (PIB, dette, rating)
+│   │   │   ├── ConflictsWidget.jsx    → Risques & conflits géopolitiques
+│   │   │   ├── ExchangeWidget.jsx     → Convertisseur de devises en temps réel
+│   │   │   ├── NewsWidget.jsx         → Flux d'actualités (Finances & Géopolitique)
+│   │   │   └── AiChatWidget.jsx       → Analyste IA Gemini avec contexte pays
+│   │   ├── context/                   → Contextes Auth et Thème (Dark / Light)
+│   │   ├── data/                      → Référentiel des pays & cartographie
+│   │   └── styles/index.css           → Design System complet et tokens CSS
+├── src/main/java/com/worldwatch/      → Backend Spring Boot
+│   ├── auth/                          → Inscription, connexion, validation JWT
+│   ├── countries/                     → Données pays
+│   ├── favorites/                     → Gestion de la liste de surveillance
+│   ├── exchange/                      → Taux de change en temps réel
+│   ├── news/                          → Actualités par pays
+│   ├── ai/                            → Chatbot IA Gemini
+│   └── config/                        → Sécurité, CORS, WebClient global
+├── pom.xml                            → Dépendances Maven Java
+└── WorldWatch_API_Reference.md        → Spécification détaillée des endpoints REST
 ```
-
-Chaque module suit le même pattern : une interface publique (`XxxService`) + des DTOs publics au niveau du package racine du module, et l'implémentation (`XxxServiceImpl`, `XxxController`, entités JPA) cachée dans un sous-package `internal` non accessible depuis l'extérieur du module.
-
-📄 **Liste complète des endpoints, requêtes et réponses : voir [`WorldWatch_API_Reference.md`](./WorldWatch_API_Reference.md)**
 
 ---
 
-## ⚙️ Setup — À faire par chaque collègue individuellement
+## 🚀 Démarrage Rapide
 
-### 1. Cloner le repo
+### 1. Prérequis
+- **Java 21** installé
+- **Node.js** (v18+) et **npm**
+- **MySQL** local (optionnel pour le frontend autonome)
+
+### 2. Lancement du Frontend
 
 ```bash
-git clone <url-du-repo>
-cd WorldWatch
+cd frontend
+npm install
+npm run dev
 ```
 
-### 2. Créer la base de données MySQL locale
+L'application s'ouvre sur : **`http://localhost:5173`**  
+- Navigation interactive entre :
+  - **Landing Page** : Présentation du terminal Fintech
+  - **World Map** : Carte mondiale interactive en pointillés avec sélection et inspection
+  - **Dashboard** : Terminal analytique complet (Macroéconomie, Risques, Devises, News, IA)
+  - **Dark / Light Mode** : Basculement instantané en haut à droite
 
-```sql
-CREATE DATABASE worldwatch_db;
-```
+### 3. Lancement du Backend
 
-Le schéma des tables est généré automatiquement au démarrage par Hibernate (`spring.jpa.hibernate.ddl-auto=update`) — aucune migration manuelle nécessaire.
-
-### 3. Créer ton fichier `.env` à la racine du projet
-
-⚠️ **Ce fichier est dans `.gitignore` — il ne doit jamais être commité.** Chacun a ses propres clés, gratuites et individuelles.
+Créez votre fichier `.env` à la racine à partir du modèle `.env.example` :
 
 ```env
-# Gemini API (chatbot IA) — clé gratuite sur https://aistudio.google.com/apikey
-GEMINI_API_KEY=
-
-# ExchangeRate-API (taux de change) — clé gratuite sur https://www.exchangerate-api.com/
-EXCHANGE_RATE_API_KEY=
-
-# NewsAPI (actualités) — clé gratuite sur https://newsapi.org/register
-NEWS_API_KEY=
-
-# JWT — génère une chaîne aléatoire de 32+ caractères, ex: openssl rand -base64 32
-JWT_SECRET=
-
-# MySQL local (ajuste selon ta config)
+GEMINI_API_KEY=votre_cle_gemini
+EXCHANGE_RATE_API_KEY=votre_cle_exchangerate
+NEWS_API_KEY=votre_cle_newsapi
+JWT_SECRET=votre_secret_jwt_32_caracteres_min
 DB_USERNAME=root
 DB_PASSWORD=
 ```
 
-### 4. Vérifie `application.properties`
-
-Ces valeurs pointent déjà vers les variables `.env` ci-dessus — rien à changer sauf le port MySQL si le tien diffère de `3306` :
-
-```properties
-spring.datasource.url=jdbc:mysql://localhost:3306/worldwatch_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-spring.datasource.username=${DB_USERNAME}
-spring.datasource.password=${DB_PASSWORD}
-
-spring.ai.google.genai.api-key=${GEMINI_API_KEY}
-spring.ai.google.genai.chat.options.model=gemini-2.5-flash
-
-exchangerate.api.key=${EXCHANGE_RATE_API_KEY}
-news.api.key=${NEWS_API_KEY}
-
-jwt.secret=${JWT_SECRET}
-jwt.expiration-ms=86400000
-```
-
-### 5. Lance l'application
-
-Depuis IntelliJ : Run sur `WorldWatchApplication.java`, ou en ligne de commande :
+Puis lancez l'application Spring Boot :
 
 ```bash
 ./mvnw spring-boot:run
 ```
 
-L'API tourne sur `http://localhost:8080`.
+L'API sera disponible sur **`http://localhost:8080`**.
 
 ---
 
-## 🔐 Authentification
+## 🗺️ Fonctionnalités Clés du Terminal
 
-Toutes les routes sauf `/api/auth/register` et `/api/auth/login` exigent un JWT :
-
-```
-Authorization: Bearer <token>
-```
-
-Le token s'obtient via `POST /api/auth/login`, valable 24h.
-
----
-
-## 🌐 CORS (pour le développement frontend)
-
-Le backend accepte actuellement toute origine `localhost:*` en développement (peu importe le port choisi pour Vite/React/etc.). Cette configuration est temporaire et sera restreinte à l'URL de prod une fois le frontend déployé — voir `SecurityConfig.java`.
-
----
-
-## 🧩 Sources de données externes utilisées
-
-| Donnée | Source | Clé requise |
-|---|---|---|
-| Pays (capitale, population, devise) | [countries.dev](https://countries.dev) | Non |
-| Taux de change | [ExchangeRate-API](https://www.exchangerate-api.com/) | Oui (gratuite) |
-| Actualités | [NewsAPI](https://newsapi.org) | Oui (gratuite) |
-| Chatbot IA | Google Gemini via Google AI Studio | Oui (gratuite) |
-
-⚠️ Ne pas utiliser `restcountries.com` — l'ancienne API (v3.1) est dépréciée et la nouvelle (v5) nécessite une clé payante.
+1. **Carte Interactive en Points (Dotted Matrix)** :
+   - Rendu Canvas 60 FPS sans dépendance externe lourde.
+   - Surlignage immédiat du pays sélectionné en cyan lumineux avec halo (*glow*).
+   - Niveau de menace géopolitique visible par couleur de point (*Critical, Elevated, Moderate, Low*).
+   - Inspection au survol et profil complet en panneau latéral.
+2. **Dossier Géopolitique & Économique** :
+   - PIB nominal, croissance, inflation, dette publique, notation souveraine.
+   - Alliances géostratégiques (OTAN, Ligue Arabe, Union Africaine, etc.) et zones de litiges actifs.
+3. **Double Thème Fluide** :
+   - Mode Sombre Obsidian / Navy pour salle de marché.
+   - Mode Clair épuré et contrasté.
+4. **Analyste IA Intégré** :
+   - Prompting contextuel injectant les données temps réel du pays interrogé dans Gemini.
 
 ---
 
-## 🐛 Problèmes connus / pièges déjà rencontrés
+## 📄 Documentation API
 
-- `countries.dev` et `exchangerate-api.com` peuvent nécessiter de suivre des redirections HTTP — le `WebClient` global (`WebClientConfig`) est déjà configuré avec `followRedirect(true)`, ne pas dupliquer cette config par service.
-- Le modèle Gemini se déprécie régulièrement — si `/api/chat` renvoie une erreur 404 côté Google, vérifier le modèle configuré dans `application.properties`.
-- `NewsAPI` avec l'endpoint `/v2/everything` cherche par défaut dans tout le corps de l'article : on utilise `qInTitle` + `sortBy=relevancy` pour éviter les faux positifs.
-
----
-
-## 👥 Équipe
-
-PFA — 4 personnes. Pour toute question sur l'API, se référer à [`WorldWatch_API_Reference.md`](./WorldWatch_API_Reference.md) avant de demander sur le groupe.
+Pour consulter l'intégralité des routes, payloads et codes de retour HTTP, consultez :  
+👉 [`WorldWatch_API_Reference.md`](./WorldWatch_API_Reference.md)
