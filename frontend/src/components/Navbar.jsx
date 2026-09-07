@@ -11,7 +11,8 @@ import {
   ShieldCheck,
   Sun,
   Moon,
-  Map
+  Map,
+  Bot
 } from 'lucide-react';
 import { COUNTRIES } from '../data/countries';
 import { useAuth } from '../context/AuthContext';
@@ -56,28 +57,77 @@ export default function Navbar({
   };
 
   return (
-    <header className="navbar">
+    <header className={`navbar ${currentView === 'landing' ? 'landing-navbar' : ''}`}>
       <div className="nav-wrapper">
         {/* Brand */}
         <div className="brand" onClick={() => onNavigate('landing')}>
-          <div className="brand-icon-wrapper">
-            <Globe size={22} />
+          <div className="brand-logo-w">
+            <svg width="34" height="34" viewBox="0 0 36 36" fill="none">
+              <circle cx="18" cy="18" r="16" fill="url(#brandGlow)" stroke="#06b6d4" strokeWidth="1.5" />
+              <path d="M10 12L14 24L18 16L22 24L26 12" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              <circle cx="18" cy="17" r="4" fill="#06b6d4" fillOpacity="0.4" stroke="#22d3ee" strokeWidth="1" />
+              <defs>
+                <radialGradient id="brandGlow" cx="0.5" cy="0.5" r="0.5" fx="0.5" fy="0.5">
+                  <stop offset="0%" stopColor="#0891b2" stopOpacity="0.8" />
+                  <stop offset="100%" stopColor="#0a192f" stopOpacity="0.9" />
+                </radialGradient>
+              </defs>
+            </svg>
           </div>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span className="brand-title">WORLD WATCH</span>
-              <span className="brand-badge">FINTECH PRO</span>
-            </div>
+          <div className="brand-text-block">
+            <span className="brand-title-styled">
+              <strong style={{ color: '#ffffff', fontWeight: 700 }}>World</strong>
+              <span style={{ color: '#38bdf8', fontWeight: 500, marginLeft: 2 }}>Watch</span>
+            </span>
           </div>
         </div>
 
         {/* View-Specific Middle Navigation */}
         {currentView === 'landing' ? (
-          <nav className="nav-links-center">
-            <a href="#features" className="nav-link">Capabilities</a>
-            <a onClick={() => onNavigate('dashboard')} className="nav-link">Spot FX Market</a>
-            <a onClick={() => onNavigate('dashboard')} className="nav-link">AI Intelligence</a>
-            <a onClick={() => onNavigate('signin')} className="nav-link">Enterprise Auth</a>
+          <nav className="nav-links-center landing-nav-links">
+            <a
+              href="#hero"
+              className="nav-link-mock active"
+              onClick={(e) => {
+                e.preventDefault();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+            >
+              Accueil
+              <span className="nav-indicator-active"></span>
+            </a>
+            <a
+              href="#explore-monde"
+              className="nav-link-mock"
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById('explore-monde')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
+              Explorer
+            </a>
+            <a
+              onClick={() => onNavigate('dashboard')}
+              className="nav-link-mock"
+            >
+              Pays
+            </a>
+            <a
+              href="#dernieres-actualites"
+              className="nav-link-mock"
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById('dernieres-actualites')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
+              Actualités
+            </a>
+            <a
+              onClick={() => onNavigate('dashboard')}
+              className="nav-link-mock"
+            >
+              Favoris
+            </a>
           </nav>
         ) : currentView === 'dashboard' ? (
           /* Search Bar in Dashboard */
@@ -186,39 +236,52 @@ export default function Navbar({
 
         {/* Action Controls & Theme Toggle */}
         <div className="nav-actions">
-          {/* Light / Dark Mode Toggle Button */}
-          <button
-            className="btn btn-secondary btn-icon"
-            onClick={toggleTheme}
-            title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
-            aria-label="Toggle color theme"
-            style={{ width: 38, height: 38 }}
-          >
-            {isDark ? (
-              <Sun size={17} color="var(--amber)" />
-            ) : (
-              <Moon size={17} color="var(--cyan-primary)" />
-            )}
-          </button>
+          {/* Light / Dark Mode Toggle Button only on Dashboard/Map */}
+          {currentView !== 'landing' && (
+            <button
+              className="btn btn-secondary btn-icon"
+              onClick={toggleTheme}
+              title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+              aria-label="Toggle color theme"
+              style={{ width: 38, height: 38 }}
+            >
+              {isDark ? (
+                <Sun size={17} color="var(--amber)" />
+              ) : (
+                <Moon size={17} color="var(--cyan-primary)" />
+              )}
+            </button>
+          )}
 
           {currentView === 'landing' ? (
-            <>
+            <div className="landing-header-actions">
               <button
-                className="btn btn-secondary"
-                onClick={() => onNavigate('signin')}
+                className="btn-pill-ask-ai"
+                onClick={() => {
+                  const el = document.getElementById('world-ai');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  else onNavigate('dashboard');
+                }}
               >
-                <LogIn size={15} />
-                <span>Sign In</span>
+                <Bot size={15} color="#38bdf8" />
+                <span>Ask AI</span>
               </button>
 
               <button
-                className="btn btn-primary"
-                onClick={() => onNavigate('dashboard')}
+                className="btn-pill-connexion"
+                onClick={() => onNavigate('signin')}
               >
-                <span>Access Terminal</span>
-                <ArrowRight size={16} />
+                <span>Connexion</span>
               </button>
-            </>
+
+              <button
+                className="btn-circle-user"
+                onClick={() => onNavigate(isAuthenticated ? 'dashboard' : 'signin')}
+                title={isAuthenticated ? user?.username : 'Compte'}
+              >
+                <User size={17} />
+              </button>
+            </div>
           ) : currentView === 'dashboard' || currentView === 'map' ? (
             <>
               {/* Map / Dashboard toggle button */}

@@ -185,6 +185,10 @@ export default function App() {
           onNavigateToDashboard={() => navigateTo('dashboard')}
           onNavigateToSignIn={() => navigateTo('signin')}
           onNavigateToMap={() => navigateTo('map')}
+          onSelectCountry={(c) => {
+            setSelectedCountry(c);
+            navigateTo('dashboard');
+          }}
         />
       ) : currentView === 'signin' ? (
         <SignInPage

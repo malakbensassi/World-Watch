@@ -1,970 +1,1111 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Globe,
-  TrendingUp,
-  Newspaper,
-  Bot,
-  Shield,
+  Search,
   ArrowRight,
-  Sparkles,
-  Zap,
-  ChevronRight,
-  Lock,
-  BarChart3,
-  Layers,
-  Activity,
-  MapPin,
-  AlertTriangle,
-  Radio,
-  Sliders,
-  CheckCircle2,
-  ExternalLink,
-  Cpu,
-  Database
+  Bot,
+  TrendingUp,
+  Compass,
+  FileText,
+  Newspaper,
+  Send,
+  Plus,
+  Minus,
+  Crosshair
 } from 'lucide-react';
 import { COUNTRIES } from '../data/countries';
-import { useTheme } from '../context/ThemeContext';
-import { fetchLiveTickerRates, fetchLiveForexMatrix } from '../api/client';
+import { fetchLiveTickerRates } from '../api/client';
 
-/* ── Interactive Constellation & Radar Canvas Background ──────── */
-function AnimatedNetworkCanvas({ isDark }) {
+/* ── Crisp Cross-Platform SVG Country Flags ────────────── */
+export function FlagIcon({ country, width = 22, height = 15, radius = 3 }) {
+  const c = country.toUpperCase();
+  const style = { width, height, borderRadius: radius, flexShrink: 0, display: 'inline-block', verticalAlign: 'middle', boxShadow: '0 1px 4px rgba(0,0,0,0.4)' };
+
+  if (c === 'MA' || c === 'MOROCCO' || c === 'MAROC') {
+    return (
+      <svg style={style} viewBox="0 0 900 600">
+        <rect width="900" height="600" fill="#c1272d" />
+        <polygon
+          points="450,195 478,282 569,282 496,335 524,422 450,369 376,422 404,335 331,282 422,282"
+          fill="none"
+          stroke="#006233"
+          strokeWidth="24"
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
+  }
+  if (c === 'FR' || c === 'FRANCE') {
+    return (
+      <svg style={style} viewBox="0 0 900 600">
+        <rect width="300" height="600" fill="#002395" />
+        <rect x="300" width="300" height="600" fill="#ffffff" />
+        <rect x="600" width="300" height="600" fill="#ed2939" />
+      </svg>
+    );
+  }
+  if (c === 'US' || c === 'USA' || c === 'ÉTATS-UNIS' || c === 'ETATS-UNIS') {
+    return (
+      <svg style={style} viewBox="0 0 7410 3900">
+        <rect width="7410" height="3900" fill="#b22234" />
+        <path d="M0,450H7410M0,1050H7410M0,1650H7410M0,2250H7410M0,2850H7410M0,3450H7410" stroke="#fff" strokeWidth="300" />
+        <rect width="2964" height="2100" fill="#3c3b6e" />
+        <circle cx="1482" cy="1050" r="700" fill="#ffffff" opacity="0.9" />
+        <rect x="800" y="550" width="1364" height="1000" fill="#3c3b6e" />
+        <polygon points="1482,750 1542,934 1736,934 1579,1048 1638,1232 1482,1118 1326,1232 1385,1048 1228,934 1422,934" fill="#ffffff" />
+      </svg>
+    );
+  }
+  if (c === 'JP' || c === 'JAPAN' || c === 'JAPON') {
+    return (
+      <svg style={style} viewBox="0 0 900 600">
+        <rect width="900" height="600" fill="#ffffff" />
+        <circle cx="450" cy="300" r="180" fill="#bc002d" />
+      </svg>
+    );
+  }
+  if (c === 'EU' || c === 'EUR' || c === 'EUROPE') {
+    return (
+      <svg style={style} viewBox="0 0 810 540">
+        <rect width="810" height="540" fill="#003399" />
+        <circle cx="405" cy="270" r="140" fill="none" stroke="#ffcc00" strokeWidth="18" strokeDasharray="1 72" />
+      </svg>
+    );
+  }
+  if (c === 'GB' || c === 'GBP' || c === 'UK') {
+    return (
+      <svg style={style} viewBox="0 0 60 30">
+        <rect width="60" height="30" fill="#012169" />
+        <path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" strokeWidth="6" />
+        <path d="M0,0 L60,30 M60,0 L0,30" stroke="#C8102E" strokeWidth="3" />
+        <path d="M30,0 v30 M0,15 h60" stroke="#fff" strokeWidth="10" />
+        <path d="M30,0 v30 M0,15 h60" stroke="#C8102E" strokeWidth="6" />
+      </svg>
+    );
+  }
+  if (c === 'CA' || c === 'CANADA') {
+    return (
+      <svg style={style} viewBox="0 0 900 450">
+        <rect width="225" height="450" fill="#ff0000" />
+        <rect x="225" width="450" height="450" fill="#ffffff" />
+        <rect x="675" width="225" height="450" fill="#ff0000" />
+        <polygon points="450,110 468,180 520,165 490,215 540,240 480,270 485,340 450,305 415,340 420,270 360,240 410,215 380,165 432,180" fill="#ff0000" />
+      </svg>
+    );
+  }
+  if (c === 'BR' || c === 'BRAZIL' || c === 'BRÉSIL') {
+    return (
+      <svg style={style} viewBox="0 0 720 504">
+        <rect width="720" height="504" fill="#009c3b" />
+        <polygon points="360,42 660,252 360,462 60,252" fill="#ffdf00" />
+        <circle cx="360" cy="252" r="105" fill="#002776" />
+      </svg>
+    );
+  }
+  if (c === 'AE' || c === 'UAE') {
+    return (
+      <svg style={style} viewBox="0 0 600 300">
+        <rect width="600" height="100" fill="#00732f" />
+        <rect y="100" width="600" height="100" fill="#ffffff" />
+        <rect y="200" width="600" height="100" fill="#000000" />
+        <rect width="150" height="300" fill="#ff0000" />
+      </svg>
+    );
+  }
+  if (c === 'AU' || c === 'AUSTRALIA' || c === 'AUSTRALIE') {
+    return (
+      <svg style={style} viewBox="0 0 600 300">
+        <rect width="600" height="300" fill="#00008b" />
+        <circle cx="450" cy="150" r="18" fill="#ffffff" />
+        <circle cx="480" cy="90" r="14" fill="#ffffff" />
+        <circle cx="510" cy="140" r="14" fill="#ffffff" />
+        <circle cx="475" cy="210" r="14" fill="#ffffff" />
+        <circle cx="150" cy="210" r="28" fill="#ffffff" />
+      </svg>
+    );
+  }
+  return <span style={{ fontSize: '1rem', marginRight: 4 }}>🌐</span>;
+}
+
+/* ── 3D Glowing Digital Holographic Earth Canvas ──────── */
+function HolographicGlobe({ onSelectMorocco }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    let animationFrameId;
+    let animId;
+    let rotation = 0;
 
-    const parent = canvas.parentElement;
-    let width = (canvas.width = parent ? parent.clientWidth : window.innerWidth);
-    let height = (canvas.height = Math.max(parent ? parent.clientHeight : 0, window.innerHeight));
+    const width = (canvas.width = 460);
+    const height = (canvas.height = 460);
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const radius = 175;
 
-    const handleResize = () => {
-      if (!canvas) return;
-      const p = canvas.parentElement;
-      width = canvas.width = p ? p.clientWidth : window.innerWidth;
-      height = canvas.height = Math.max(p ? p.clientHeight : 0, window.innerHeight);
-    };
-    window.addEventListener('resize', handleResize);
-
-    // Particle nodes configuration
-    const nodeCount = Math.min(65, Math.floor((width * height) / 18000));
-    const nodes = [];
-    const colors = isDark
-      ? ['rgba(6, 182, 212, ', 'rgba(56, 189, 248, ', 'rgba(168, 85, 247, ']
-      : ['rgba(2, 132, 199, ', 'rgba(14, 165, 233, ', 'rgba(124, 58, 237, '];
-
-    for (let i = 0; i < nodeCount; i++) {
-      nodes.push({
-        x: Math.random() * width,
-        y: Math.random() * height,
-        vx: (Math.random() - 0.5) * 0.55,
-        vy: (Math.random() - 0.5) * 0.55,
-        radius: Math.random() * 1.8 + 1.2,
-        colorPrefix: colors[Math.floor(Math.random() * colors.length)],
-        pulse: Math.random() * Math.PI * 2,
-        pulseSpeed: 0.02 + Math.random() * 0.03
+    // Point cloud
+    const dots = [];
+    const numPoints = 720;
+    for (let i = 0; i < numPoints; i++) {
+      const phi = Math.acos(-1 + (2 * i) / numPoints);
+      const theta = Math.sqrt(numPoints * Math.PI) * phi;
+      dots.push({
+        x0: Math.cos(theta) * Math.sin(phi),
+        y0: Math.sin(theta) * Math.sin(phi),
+        z0: Math.cos(phi),
+        baseSize: Math.random() * 1.6 + 1
       });
     }
 
-    // Mouse tracking for subtle magnetism
-    let mouse = { x: -1000, y: -1000 };
-    const onMouseMove = (e) => {
-      const rect = canvas.getBoundingClientRect();
-      mouse.x = e.clientX - rect.left;
-      mouse.y = e.clientY - rect.top;
-    };
-    const onMouseLeave = () => {
-      mouse.x = -1000;
-      mouse.y = -1000;
-    };
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseleave', onMouseLeave);
-
-    // Radar pulse wave
-    let radarRadius = 0;
-    const maxRadar = Math.min(width, height) * 0.8;
+    // Satellite orbits
+    const orbits = [
+      { tilt: -0.38, speed: 0.014, angle: 0, r: radius + 28, color: '#38bdf8' },
+      { tilt: 0.44, speed: -0.011, angle: Math.PI / 2, r: radius + 42, color: '#06b6d4' }
+    ];
 
     const render = () => {
       ctx.clearRect(0, 0, width, height);
 
-      // Radar scan pulse effect
-      radarRadius += 0.8;
-      if (radarRadius > maxRadar) radarRadius = 0;
-      const radarAlpha = Math.max(0, 1 - radarRadius / maxRadar) * (isDark ? 0.08 : 0.05);
+      // Deep blue outer atmosphere halo
+      const radialAtmosphere = ctx.createRadialGradient(
+        centerX,
+        centerY,
+        radius * 0.7,
+        centerX,
+        centerY,
+        radius * 1.38
+      );
+      radialAtmosphere.addColorStop(0, 'rgba(14, 165, 233, 0.22)');
+      radialAtmosphere.addColorStop(0.5, 'rgba(6, 182, 212, 0.12)');
+      radialAtmosphere.addColorStop(0.8, 'rgba(56, 189, 248, 0.05)');
+      radialAtmosphere.addColorStop(1, 'rgba(2, 6, 23, 0)');
+      ctx.fillStyle = radialAtmosphere;
+      ctx.fillRect(0, 0, width, height);
 
-      ctx.save();
+      // Earth sphere base with internal glowing darkness
+      const sphereGrad = ctx.createRadialGradient(
+        centerX - radius * 0.35,
+        centerY - radius * 0.35,
+        radius * 0.1,
+        centerX,
+        centerY,
+        radius
+      );
+      sphereGrad.addColorStop(0, '#0c2647');
+      sphereGrad.addColorStop(0.45, '#07182e');
+      sphereGrad.addColorStop(0.85, '#040d1a');
+      sphereGrad.addColorStop(1, '#020617');
+
       ctx.beginPath();
-      ctx.arc(width * 0.5, height * 0.45, radarRadius, 0, Math.PI * 2);
-      ctx.strokeStyle = isDark
-        ? `rgba(6, 182, 212, ${radarAlpha})`
-        : `rgba(2, 132, 199, ${radarAlpha})`;
-      ctx.lineWidth = 1.5;
+      ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+      ctx.fillStyle = sphereGrad;
+      ctx.fill();
+
+      // Atmospheric glowing rim stroke
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.85)';
+      ctx.lineWidth = 2.4;
+      ctx.shadowColor = '#00d2ff';
+      ctx.shadowBlur = 24;
       ctx.stroke();
-      ctx.restore();
+      ctx.shadowBlur = 0;
 
-      // Connect near nodes with glowing lines
-      const maxDistance = 135;
-      for (let i = 0; i < nodeCount; i++) {
-        for (let j = i + 1; j < nodeCount; j++) {
-          const dx = nodes[i].x - nodes[j].x;
-          const dy = nodes[i].y - nodes[j].y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-
-          if (dist < maxDistance) {
-            const alpha = (1 - dist / maxDistance) * (isDark ? 0.18 : 0.12);
-            ctx.beginPath();
-            ctx.moveTo(nodes[i].x, nodes[i].y);
-            ctx.lineTo(nodes[j].x, nodes[j].y);
-            ctx.strokeStyle = isDark
-              ? `rgba(6, 182, 212, ${alpha})`
-              : `rgba(2, 132, 199, ${alpha})`;
-            ctx.lineWidth = 0.8;
-            ctx.stroke();
-          }
-        }
+      // Latitude Parallels
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.2)';
+      for (let lat = -60; lat <= 60; lat += 30) {
+        const rad = (lat * Math.PI) / 180;
+        const rLat = radius * Math.cos(rad);
+        const yLat = centerY + radius * Math.sin(rad) * 0.35;
+        ctx.beginPath();
+        ctx.ellipse(centerX, yLat, rLat, rLat * 0.3, 0, 0, Math.PI * 2);
+        ctx.stroke();
       }
 
-      // Draw and update each node
-      for (let i = 0; i < nodeCount; i++) {
-        const n = nodes[i];
+      // Meridians rotating
+      rotation += 0.007;
+      for (let lon = 0; lon < 6; lon++) {
+        const angle = rotation + (lon * Math.PI) / 3;
+        const xOffset = Math.sin(angle) * radius;
+        ctx.beginPath();
+        ctx.ellipse(
+          centerX,
+          centerY,
+          Math.abs(xOffset),
+          radius,
+          0,
+          0,
+          Math.PI * 2
+        );
+        ctx.strokeStyle =
+          Math.cos(angle) > 0
+            ? 'rgba(56, 189, 248, 0.25)'
+            : 'rgba(56, 189, 248, 0.06)';
+        ctx.stroke();
+      }
 
-        // Move
-        n.x += n.vx;
-        n.y += n.vy;
+      // Continents Holographic Dot Cloud
+      const cosR = Math.cos(rotation);
+      const sinR = Math.sin(rotation);
 
-        // Bounce off canvas walls
-        if (n.x < 0 || n.x > width) n.vx *= -1;
-        if (n.y < 0 || n.y > height) n.vy *= -1;
+      dots.forEach((dot) => {
+        const x = dot.x0 * cosR - dot.z0 * sinR;
+        const z = dot.x0 * sinR + dot.z0 * cosR;
+        const y = dot.y0;
 
-        // Mouse gentle repel / attraction
-        const mdx = mouse.x - n.x;
-        const mdy = mouse.y - n.y;
-        const mdist = Math.sqrt(mdx * mdx + mdy * mdy);
-        if (mdist < 120 && mdist > 0) {
-          const force = (1 - mdist / 120) * 0.04;
-          n.x -= (mdx / mdist) * force * 15;
-          n.y -= (mdy / mdist) * force * 15;
+        if (z > -0.2) {
+          const screenX = centerX + x * radius;
+          const screenY = centerY + y * radius;
+          const alpha = (z + 0.2) / 1.2;
+
+          ctx.beginPath();
+          ctx.arc(screenX, screenY, dot.baseSize * (0.8 + z * 0.4), 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(56, 189, 248, ${Math.min(1, alpha * 0.95)})`;
+          ctx.fill();
         }
+      });
 
-        // Pulsing glow
-        n.pulse += n.pulseSpeed;
-        const alpha = isDark
-          ? 0.45 + Math.sin(n.pulse) * 0.25
-          : 0.35 + Math.sin(n.pulse) * 0.2;
+      // Orbital satellite lines
+      orbits.forEach((orb) => {
+        orb.angle += orb.speed;
+        ctx.save();
+        ctx.translate(centerX, centerY);
+        ctx.rotate(orb.tilt);
 
         ctx.beginPath();
-        ctx.arc(n.x, n.y, n.radius, 0, Math.PI * 2);
-        ctx.fillStyle = `${n.colorPrefix}${alpha})`;
-        ctx.shadowColor = isDark ? '#00f2fe' : '#0284c7';
-        ctx.shadowBlur = isDark ? 6 : 3;
-        ctx.fill();
-        ctx.shadowBlur = 0;
-      }
+        ctx.ellipse(0, 0, orb.r, orb.r * 0.34, 0, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.35)';
+        ctx.lineWidth = 1.2;
+        ctx.setLineDash([4, 6]);
+        ctx.stroke();
+        ctx.setLineDash([]);
 
-      animationFrameId = requestAnimationFrame(render);
+        // Satellite beacon
+        const satX = Math.cos(orb.angle) * orb.r;
+        const satY = Math.sin(orb.angle) * (orb.r * 0.34);
+
+        ctx.beginPath();
+        ctx.arc(satX, satY, 4.5, 0, Math.PI * 2);
+        ctx.fillStyle = orb.color;
+        ctx.shadowColor = orb.color;
+        ctx.shadowBlur = 12;
+        ctx.fill();
+
+        ctx.restore();
+      });
+
+      animId = requestAnimationFrame(render);
     };
 
     render();
 
-    return () => {
-      cancelAnimationFrame(animationFrameId);
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseleave', onMouseLeave);
-    };
-  }, [isDark]);
+    return () => cancelAnimationFrame(animId);
+  }, []);
 
   return (
-    <canvas
-      ref={canvasRef}
-      className="landing-network-canvas"
-      aria-hidden="true"
-    />
+    <div className="hero-globe-wrapper">
+      <canvas ref={canvasRef} className="hero-globe-canvas" />
+
+      {/* Floating Holographic Country Card: Morocco */}
+      <div className="hero-floating-card" onClick={onSelectMorocco}>
+        <div className="card-flag-header">
+          <FlagIcon country="MA" width={22} height={15} />
+          <span className="country-name-hero">Morocco</span>
+        </div>
+        <div className="card-info-row">
+          <span className="info-label">Capitale</span>
+          <span className="info-value">Rabat</span>
+        </div>
+        <div className="card-info-row">
+          <span className="info-label">Population</span>
+          <span className="info-value">37,8 M</span>
+        </div>
+        <div className="card-info-row">
+          <span className="info-label">Devise</span>
+          <span className="info-value">MAD</span>
+        </div>
+        <button className="card-action-link" onClick={onSelectMorocco}>
+          <span>Voir le pays</span>
+          <ArrowRight size={13} />
+        </button>
+      </div>
+
+      <p className="hero-globe-quote">Plus qu'une carte, une vision du monde.</p>
+    </div>
   );
 }
 
-/* ── Interactive SVG Sparkline Component ──────────────────────── */
-function MiniSparkline({ up = true }) {
-  const points = up
-    ? [20, 24, 22, 28, 25, 32, 29, 36, 34, 42, 40, 48]
-    : [48, 44, 46, 40, 42, 35, 38, 30, 32, 25, 27, 20];
-
-  const w = 120;
-  const h = 40;
-  const step = w / (points.length - 1);
-
-  const pathD = points.reduce((acc, val, idx) => {
-    const x = idx * step;
-    const y = h - (val / 50) * h;
-    return idx === 0 ? `M ${x} ${y}` : `${acc} L ${x} ${y}`;
-  }, '');
-
-  const strokeColor = up ? 'var(--emerald)' : 'var(--rose)';
-  const fillColor = up ? 'rgba(16, 185, 129, 0.12)' : 'rgba(244, 63, 94, 0.12)';
-
-  return (
-    <svg width={w} height={h} className="sparkline-svg" viewBox={`0 0 ${w} ${h}`}>
-      <path
-        d={`${pathD} L ${w} ${h} L 0 ${h} Z`}
-        fill={fillColor}
-      />
-      <path
-        d={pathD}
-        fill="none"
-        stroke={strokeColor}
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
+/* ── World Pinpoints ─────────────── */
+const MAP_PINS = [
+  { id: 'ca', name: 'Canada', x: 20, y: 30, code: 'CA', cap: 'Ottawa', pop: '38,9 M', cur: 'CAD' },
+  { id: 'us', name: 'États-Unis', x: 22, y: 44, code: 'US', cap: 'Washington', pop: '340 M', cur: 'USD' },
+  { id: 'br', name: 'Brésil', x: 31, y: 70, code: 'BR', cap: 'Brasília', pop: '215 M', cur: 'BRL' },
+  { id: 'eu', name: 'Europe', x: 50, y: 35, code: 'FR', cap: 'Paris / Bruxelles', pop: '448 M', cur: 'EUR' },
+  { id: 'ma', name: 'Maroc', x: 47, y: 47, code: 'MA', cap: 'Rabat', pop: '37,8 M', cur: 'MAD' },
+  { id: 'uae', name: 'UAE', x: 62, y: 52, code: 'AE', cap: 'Abu Dhabi', pop: '10 M', cur: 'AED' },
+  { id: 'jp', name: 'Japon', x: 84, y: 42, code: 'JP', cap: 'Tokyo', pop: '123 M', cur: 'JPY' },
+  { id: 'au', name: 'Australie', x: 86, y: 78, code: 'AU', cap: 'Canberra', pop: '26 M', cur: 'AUD' }
+];
 
 export default function LandingPage({
   onNavigateToDashboard,
   onNavigateToSignIn,
-  onNavigateToMap
+  onNavigateToMap,
+  onSelectCountry
 }) {
-  const { isDark } = useTheme();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [selectedPin, setSelectedPin] = useState(MAP_PINS.find(p => p.id === 'ma'));
 
-  // Selected Country in the Hero Terminal Mockup (Interactive Tab Demo)
-  const [mockupCountryIndex, setMockupCountryIndex] = useState(0);
-
-  // Live Real-Time Ticker & Forex Matrix State
-  const [tickerItems, setTickerItems] = useState([
-    { pair: 'USD / MAD', rate: '9.3527', change: '+0.12%', up: true },
-    { pair: 'EUR / USD', rate: '1.1613', change: '+0.06%', up: true },
-    { pair: 'GBP / USD', rate: '1.3519', change: '-0.14%', up: false },
-    { pair: 'USD / JPY', rate: '156.18', change: '+0.28%', up: true },
-    { pair: 'EUR / MAD', rate: '10.8617', change: '+0.18%', up: true },
-    { pair: 'USD / AED', rate: '3.6725', change: '0.00%', up: true },
-    { pair: 'USD / CAD', rate: '1.3831', change: '-0.09%', up: false },
-    { pair: 'USD / SAR', rate: '3.7500', change: '+0.01%', up: true },
-    { pair: 'EUR / GBP', rate: '0.8588', change: '+0.11%', up: true },
-    { pair: 'USD / CHF', rate: '0.8099', change: '-0.05%', up: false },
-    { pair: 'USD / CNY', rate: '6.7194', change: '+0.03%', up: true }
+  // World AI Interactive chat
+  const [userQuery, setUserQuery] = useState('');
+  const [chatMessages, setChatMessages] = useState([
+    {
+      type: 'user',
+      text: 'Quelle est la capitale du Maroc ?'
+    },
+    {
+      type: 'ai',
+      text: 'La capitale du Maroc est Rabat. Rabat est la capitale politique du pays, tandis que Marrakech est la capitale touristique.',
+      time: "Aujourd'hui - 14:32"
+    }
   ]);
-  const [liveRatesMap, setLiveRatesMap] = useState(null);
-  const [tickerTimestamp, setTickerTimestamp] = useState('Real-Time Stream');
-  const [isLiveApiConnected, setIsLiveApiConnected] = useState(false);
 
-  // Mini Interactive Currency Converter State
-  const [calcAmount, setCalcAmount] = useState(1000);
-  const [calcBase, setCalcBase] = useState('USD');
-  const [calcTarget, setCalcTarget] = useState('MAD');
+  // News active tab
+  const [newsFilter, setNewsFilter] = useState('Tous');
 
-  // Fetch real-time rates on mount and periodically every 60s
+  // Forex rates
+  const [rates, setRates] = useState([
+    { pair: 'USD → MAD', flagCode: 'US', symbol: '$', rate: '10,72 MAD', change: '+0,12%', path: 'M0,18 Q15,8 30,14 T60,5 T90,2' },
+    { pair: 'EUR → MAD', flagCode: 'EU', symbol: '€', rate: '12,48 MAD', change: '+0,08%', path: 'M0,16 Q15,19 30,12 T60,8 T90,3' },
+    { pair: 'GBP → MAD', flagCode: 'GB', symbol: '£', rate: '14,52 MAD', change: '+0,10%', path: 'M0,17 Q15,12 30,15 T60,6 T90,1' }
+  ]);
+
+  // Fetch live ticker
   useEffect(() => {
-    let isMounted = true;
-
-    async function loadRealTimeForex() {
+    async function loadRates() {
       try {
-        const [tickerData, matrixData] = await Promise.all([
-          fetchLiveTickerRates(),
-          fetchLiveForexMatrix('USD')
-        ]);
-        if (isMounted) {
-          if (Array.isArray(tickerData) && tickerData.length > 0) {
-            setTickerItems(tickerData);
-            setIsLiveApiConnected(true);
-            if (tickerData[0]?.lastUpdate) {
-              setTickerTimestamp(tickerData[0].lastUpdate);
-            }
-          }
-          if (matrixData && matrixData.rates) {
-            setLiveRatesMap(matrixData.rates);
+        const live = await fetchLiveTickerRates();
+        if (live && live.rates) {
+          const usdMad = live.rates.MAD;
+          const eurMad = live.rates.EUR ? (live.rates.MAD / live.rates.EUR).toFixed(2) : '12,48';
+          const gbpMad = live.rates.GBP ? (live.rates.MAD / live.rates.GBP).toFixed(2) : '14,52';
+          if (usdMad) {
+            setRates([
+              { pair: 'USD → MAD', flagCode: 'US', symbol: '$', rate: `${usdMad.toFixed(2)} MAD`, change: '+0,12%', path: 'M0,18 Q15,8 30,14 T60,5 T90,2' },
+              { pair: 'EUR → MAD', flagCode: 'EU', symbol: '€', rate: `${eurMad} MAD`, change: '+0,08%', path: 'M0,16 Q15,19 30,12 T60,8 T90,3' },
+              { pair: 'GBP → MAD', flagCode: 'GB', symbol: '£', rate: `${gbpMad} MAD`, change: '+0,10%', path: 'M0,17 Q15,12 30,15 T60,6 T90,1' }
+            ]);
           }
         }
-      } catch (err) {
-        console.warn('[Forex] Real-time ticker query error:', err);
+      } catch {
+        // Fallback
       }
     }
-
-    loadRealTimeForex();
-    const interval = setInterval(loadRealTimeForex, 60000);
-    return () => {
-      isMounted = false;
-      clearInterval(interval);
-    };
+    loadRates();
   }, []);
 
-  // Dynamic calculation using live real-time rates
-  const calculatedOutput = useMemo(() => {
-    if (liveRatesMap) {
-      const fromRateUSD = calcBase === 'USD' ? 1 : (liveRatesMap[calcBase] ? (1 / liveRatesMap[calcBase]) : 1);
-      const toRateUSD = calcTarget === 'USD' ? 1 : (liveRatesMap[calcTarget] || 1);
-      const crossRate = fromRateUSD * toRateUSD;
-      return (calcAmount * crossRate).toFixed(2);
+  const handleCountryClick = (code) => {
+    const found = COUNTRIES.find(c => c.code === code) || COUNTRIES[0];
+    if (onSelectCountry) {
+      onSelectCountry(found);
+    } else {
+      onNavigateToDashboard();
     }
-    // Fallback if network is loading
-    const defaultRates = {
-      USD: { MAD: 9.3527, EUR: 0.8611, GBP: 0.7397, JPY: 156.18, CAD: 1.3831 },
-      EUR: { MAD: 10.8617, USD: 1.1613, GBP: 0.8588, JPY: 181.37, CAD: 1.6062 },
-      MAD: { USD: 0.1069, EUR: 0.0921, GBP: 0.0791, JPY: 16.69, CAD: 0.1479 }
-    };
-    return (calcAmount * (defaultRates[calcBase]?.[calcTarget] || 1)).toFixed(2);
-  }, [calcAmount, calcBase, calcTarget, liveRatesMap]);
+  };
 
-  // Showcase countries for the hero terminal tab switcher
-  const heroDemoCountries = COUNTRIES.slice(0, 6);
-  const currentDemo = heroDemoCountries[mockupCountryIndex] || COUNTRIES[0];
+  const handleSendChat = (text) => {
+    const q = text || userQuery;
+    if (!q.trim()) return;
 
-  // Dynamic Spot rate for current demo nation
-  const demoSpotRateText = useMemo(() => {
-    const cur = currentDemo.currency;
-    if (cur === 'USD') return '1 USD = 1.0000 USD';
-    if (liveRatesMap && liveRatesMap[cur]) {
-      const val = liveRatesMap[cur];
-      const formatted = val >= 100 ? val.toFixed(2) : val >= 10 ? val.toFixed(3) : val.toFixed(4);
-      return `1 USD = ${formatted} ${cur}`;
-    }
-    return currentDemo.code === 'MA' ? '1 USD = 9.3527 MAD' : `1 USD = Live Spot ${cur}`;
-  }, [currentDemo, liveRatesMap]);
+    const newMsgs = [
+      ...chatMessages,
+      { type: 'user', text: q }
+    ];
+    setChatMessages(newMsgs);
+    setUserQuery('');
 
-  const coreFeatures = [
-    {
-      icon: <Globe size={26} color="var(--cyan-primary)" />,
-      badge: 'CANVAS 60 FPS ENGINE',
-      title: 'Interactive Dotted World Map',
-      description:
-        'A zero-latency canvas-rendered global dot matrix with instant color highlighting for selected nations, threat levels, and hover telemetry.',
-      actionLabel: 'Explore Live Map →',
-      onAction: onNavigateToMap
-    },
-    {
-      icon: <TrendingUp size={26} color="var(--emerald)" />,
-      badge: 'REAL-TIME FX ENGINE',
-      title: 'Global Currency & Forex Exchange',
-      description:
-        'Live spot rates for 160+ fiat currencies with an interactive multi-currency conversion calculator and spread monitoring.',
-      actionLabel: 'Launch Forex Terminal →',
-      onAction: onNavigateToDashboard
-    },
-    {
-      icon: <Bot size={26} color="var(--cyan-primary)" />,
-      badge: 'GEMINI 2.5 FLASH AI CORE',
-      title: 'Contextual AI Sovereign Analyst',
-      description:
-        'Autonomous macro-analyst injected in real-time with verified national demographics, economic indicators, and diplomatic updates.',
-      actionLabel: 'Chat with AI Analyst →',
-      onAction: onNavigateToDashboard
-    },
-    {
-      icon: <AlertTriangle size={26} color="var(--amber)" />,
-      badge: 'GEOPOLITICAL THREAT RADAR',
-      title: 'Active Disputes & Alliances',
-      description:
-        'Monitor regional sovereignty recognition, trade disputes, security alliances (NATO, Arab League, AU), and defense postures.',
-      actionLabel: 'View Geopolitical Matrix →',
-      onAction: onNavigateToDashboard
-    },
-    {
-      icon: <Newspaper size={26} color="var(--cyan-primary)" />,
-      badge: 'YAHOO FINANCE & NEWS WIRE',
-      title: 'Targeted Intelligence Newsfeeds',
-      description:
-        'Dual-stream news feeds specifically isolated to country-level financial trends, capital market developments, and diplomacy.',
-      actionLabel: 'Read Live Wire →',
-      onAction: onNavigateToDashboard
-    },
-    {
-      icon: <Shield size={26} color="var(--indigo)" />,
-      badge: 'STATELESS SECURITY',
-      title: 'Enterprise JWT Authentication',
-      description:
-        'Encrypted session tokens, modular Spring Boot architecture, and isolated user-specific watchlist storage with instant sync.',
-      actionLabel: 'Create Analyst Account →',
-      onAction: onNavigateToSignIn
-    }
-  ];
+    setTimeout(() => {
+      let reply = "World AI analyse les données géopolitiques et économiques mondiales pour ce pays.";
+      if (q.toLowerCase().includes('change') || q.toLowerCase().includes('devise')) {
+        reply = "La devise officielle du Maroc est le Dirham Marocain (MAD). Le taux actuel est d'environ 1 USD = 10,72 MAD.";
+      } else if (q.toLowerCase().includes('population')) {
+        reply = "La population du Maroc est estimée à 37,8 millions d'habitants avec une dynamique démographique active.";
+      } else if (q.toLowerCase().includes('actualité') || q.toLowerCase().includes('nouvelle')) {
+        reply = "Le Maroc accélère actuellement ses investissements dans les énergies renouvelables et l'industrie automobile verte.";
+      }
+      setChatMessages([
+        ...newMsgs,
+        {
+          type: 'ai',
+          text: reply,
+          time: "À l'instant"
+        }
+      ]);
+    }, 550);
+  };
 
-  const stats = [
-    { value: '195+', label: 'Nations Tracked', sub: 'Global Coverage' },
-    { value: '160+', label: 'Currencies Monitored', sub: 'Real-time Spot Rates' },
-    { value: '< 18ms', label: 'Matrix Render Speed', sub: 'Pure HTML5 Canvas' },
-    { value: '99.99%', label: 'System Availability', sub: 'Continuous Feeds' }
-  ];
+  const filteredSearchCountries = COUNTRIES.filter(c =>
+    c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    c.capital.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    c.code.toLowerCase().includes(searchQuery.toLowerCase())
+  ).slice(0, 6);
 
   return (
-    <div className="landing-page">
-      {/* Dynamic Animated Constellation & Radar Canvas Background */}
-      <AnimatedNetworkCanvas isDark={isDark} />
+    <div className="mock-landing-container" id="hero">
+      {/* ── 1. HERO SECTION ───────────────────────────────────── */}
+      <section className="mock-hero-section">
+        <div className="mock-hero-left">
+          {/* Badge */}
+          <div className="mock-badge">
+            <span className="mock-badge-dot"></span>
+            <span>INFORMATIONS EN TEMPS RÉEL</span>
+          </div>
 
-      {/* Ambient Gradient Orbs */}
-      <div className="landing-glow glow-top-center" />
-      <div className="landing-glow glow-bottom-right" />
-      <div className="landing-glow glow-middle-left" />
+          {/* Display Heading */}
+          <h1 className="mock-hero-title">
+            Le monde.<br />
+            Toutes les informations.<br />
+            <span className="cyan-highlight">Un seul endroit.</span>
+          </h1>
 
-      {/* Cyber Grid Lines Effect */}
-      <div className="landing-grid-overlay" aria-hidden="true" />
+          {/* Subtitle */}
+          <p className="mock-hero-desc">
+            Explorez les informations essentielles de chaque pays : capitale, population, taux de change, actualités récentes... Le tout enrichi par une IA dédiée.
+          </p>
 
-      {/* Live Market Ticker Marquee */}
-      <div className="ticker-bar" title={`Live API Feed Timestamp: ${tickerTimestamp}`}>
-        <div className="ticker-label">
-          <span className="pulse-dot" style={{ width: 7, height: 7, background: 'var(--emerald)' }} />
-          <span>{isLiveApiConnected ? 'LIVE SPOT FOREX' : 'SPOT FOREX WIRE'}</span>
-          <span className="live-tag">API LIVE</span>
-        </div>
-        <div className="ticker-track">
-          {tickerItems.concat(tickerItems).map((t, idx) => (
-            <div key={idx} className="ticker-item">
-              <span className="ticker-pair">{t.pair}</span>
-              <span className="ticker-rate">{t.rate}</span>
-              <span className={`ticker-change ${t.up ? 'up' : 'down'}`}>
-                {t.change}
-              </span>
+          {/* Search bar */}
+          <div className="mock-search-wrapper">
+            <div className="mock-search-bar">
+              <Search size={18} className="mock-search-icon" />
+              <input
+                type="text"
+                placeholder="Rechercher un pays..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setSearchOpen(true);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && filteredSearchCountries[0]) {
+                    handleCountryClick(filteredSearchCountries[0].code);
+                  }
+                }}
+                onFocus={() => setSearchOpen(true)}
+              />
+              <button
+                className="mock-search-btn"
+                onClick={() => {
+                  if (filteredSearchCountries[0]) {
+                    handleCountryClick(filteredSearchCountries[0].code);
+                  } else {
+                    onNavigateToDashboard();
+                  }
+                }}
+              >
+                <ArrowRight size={16} />
+              </button>
             </div>
-          ))}
+
+            {/* Dropdown list */}
+            {searchOpen && searchQuery && (
+              <div className="mock-search-dropdown">
+                {filteredSearchCountries.map((c) => (
+                  <div
+                    key={c.code}
+                    className="mock-search-item"
+                    onClick={() => {
+                      handleCountryClick(c.code);
+                      setSearchOpen(false);
+                    }}
+                  >
+                    <FlagIcon country={c.code} width={24} height={16} />
+                    <div className="mock-search-text">
+                      <strong>{c.name}</strong>
+                      <span>Cap: {c.capital} • {c.currency}</span>
+                    </div>
+                    <ArrowRight size={14} color="#06b6d4" />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Pays populaires */}
+          <div className="mock-popular-row">
+            <span className="popular-label">Pays populaires :</span>
+            <button className="popular-pill" onClick={() => handleCountryClick('MA')}>
+              <FlagIcon country="MA" width={18} height={12} />
+              <span>Maroc</span>
+            </button>
+            <button className="popular-pill" onClick={() => handleCountryClick('FR')}>
+              <FlagIcon country="FR" width={18} height={12} />
+              <span>France</span>
+            </button>
+            <button className="popular-pill" onClick={() => handleCountryClick('US')}>
+              <FlagIcon country="US" width={18} height={12} />
+              <span>États-Unis</span>
+            </button>
+            <button className="popular-pill" onClick={() => handleCountryClick('JP')}>
+              <FlagIcon country="JP" width={18} height={12} />
+              <span>Japon</span>
+            </button>
+          </div>
+
+          {/* CTA Buttons */}
+          <div className="mock-cta-group">
+            <button className="mock-btn-primary" onClick={onNavigateToDashboard}>
+              <span>Explorer les pays</span>
+              <ArrowRight size={16} />
+            </button>
+            <button
+              className="mock-btn-secondary"
+              onClick={() => {
+                document.getElementById('world-ai')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
+              <Bot size={17} color="#38bdf8" />
+              <span>Ask World AI</span>
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* Hero Section */}
-      <section className="landing-hero">
-        <div className="landing-pill" onClick={onNavigateToMap}>
-          <Sparkles size={14} color="var(--cyan-primary)" />
-          <span>NEW: Interactive Dotted World Intelligence Map</span>
-          <span className="pill-arrow">&rarr;</span>
+        {/* Hero Right Holographic Globe */}
+        <div className="mock-hero-right">
+          <HolographicGlobe onSelectMorocco={() => handleCountryClick('MA')} />
         </div>
+      </section>
 
-        <h1 className="landing-hero-title">
-          The Sovereign Global Economy, <br />
-          <span className="gradient-text">Decoded in Real Time.</span>
-        </h1>
-
-        <p className="landing-hero-subtitle">
-          Empowering financial institutions, geopolitical analysts, and international traders with 
-          centralized macroeconomic metrics, live multi-currency spot rates, 
-          interactive dotted mapping, and autonomous Gemini AI sovereign intelligence.
-        </p>
-
-        {/* Hero Actions Group */}
-        <div className="hero-cta-group">
-          <button className="btn btn-primary btn-hero" onClick={onNavigateToDashboard}>
-            <Zap size={18} />
-            <span>Launch Terminal</span>
-            <ArrowRight size={18} />
-          </button>
-          <button className="btn btn-secondary btn-hero" onClick={onNavigateToMap}>
-            <Globe size={18} color="var(--cyan-primary)" />
-            <span>Explore Dotted World Map</span>
-          </button>
-          <button className="btn btn-secondary btn-hero" onClick={onNavigateToSignIn}>
-            <Lock size={16} />
-            <span>Sign In / Create Account</span>
-          </button>
-        </div>
-
-        {/* Live System Indicator */}
-        <div className="live-status-pill">
-          <span className="pulse-dot" />
-          <span>GLOBAL DATA FEED ACTIVE · 195 SOVEREIGN NATIONS · 256-BIT ENCRYPTION</span>
-        </div>
-
-        {/* ── Interactive Hero Terminal Mockup ─────────────────── */}
-        <div className="hero-terminal-mockup glass-card">
-          {/* Terminal Window Header Bar */}
-          <div className="mockup-window-bar">
-            <div className="mockup-dots">
-              <span className="dot dot-red" />
-              <span className="dot dot-yellow" />
-              <span className="dot dot-green" />
+      {/* ── 2. SECTION: EXPLORE LE MONDE ──────────────────────── */}
+      <section className="mock-section" id="explore-monde">
+        <div className="mock-section-header">
+          <div className="section-title-wrapper">
+            <div className="section-icon-circle">
+              <Globe size={22} color="#38bdf8" />
             </div>
-            <div className="mockup-tab">
-              <Radio size={13} color="var(--cyan-primary)" className="spin-slow" />
-              <span>terminal.worldwatch.io / live-monitor / {currentDemo.code}</span>
+            <div>
+              <h2 className="mock-section-title">Explore le monde</h2>
+              <p className="mock-section-subtitle">Sélectionnez un pays pour découvrir ses informations en temps réel.</p>
             </div>
-            <div className="mockup-status">
-              <span className="pulse-dot" />
-              <span>LIVE TELEMETRY</span>
+          </div>
+        </div>
+
+        <div className="explore-layout-grid">
+          {/* Left: Interactive Map Container */}
+          <div className="explore-map-card">
+            {/* Map Controls */}
+            <div className="map-zoom-controls">
+              <button title="Zoomer"><Plus size={16} /></button>
+              <button title="Dézoomer"><Minus size={16} /></button>
+              <button title="Recentrer"><Crosshair size={16} /></button>
+            </div>
+
+            {/* Dark Styled World Map with Pins */}
+            <div className="explore-map-canvas">
+              {/* High-Fidelity Continents Contours */}
+              <svg className="world-svg-base" viewBox="0 0 1000 500" fill="none" preserveAspectRatio="none">
+                <defs>
+                  <pattern id="dotPattern" x="0" y="0" width="18" height="18" patternUnits="userSpaceOnUse">
+                    <circle cx="2" cy="2" r="1.1" fill="rgba(56, 189, 248, 0.12)" />
+                  </pattern>
+                </defs>
+                {/* Dot background */}
+                <rect width="1000" height="500" fill="url(#dotPattern)" />
+
+                {/* North America */}
+                <path d="M70,80 Q130,50 200,60 T310,110 T300,190 T240,230 T170,260 T140,230 T110,150 Z" fill="#0d1b2e" stroke="#1c3554" strokeWidth="1.2" />
+                {/* South America */}
+                <path d="M210,270 Q280,270 320,330 T280,450 T220,460 T190,380 T190,310 Z" fill="#0d1b2e" stroke="#1c3554" strokeWidth="1.2" />
+                {/* Europe */}
+                <path d="M440,70 Q510,60 550,110 T520,180 T450,170 T420,110 Z" fill="#0d1b2e" stroke="#1c3554" strokeWidth="1.2" />
+                {/* Africa */}
+                <path d="M420,190 Q510,180 550,250 T530,390 T470,430 T420,340 T390,240 Z" fill="#0d1b2e" stroke="#1c3554" strokeWidth="1.2" />
+                {/* Asia */}
+                <path d="M550,70 Q750,50 890,100 T870,240 T740,290 T630,280 T560,180 Z" fill="#0d1b2e" stroke="#1c3554" strokeWidth="1.2" />
+                {/* Australia */}
+                <path d="M760,330 Q860,320 890,380 T840,460 T760,440 T730,380 Z" fill="#0d1b2e" stroke="#1c3554" strokeWidth="1.2" />
+              </svg>
+
+              {/* Pinpoints matching mockup */}
+              {MAP_PINS.map((pin) => {
+                const isSelected = selectedPin.id === pin.id;
+                return (
+                  <div
+                    key={pin.id}
+                    className={`map-pinpoint-node ${isSelected ? 'active' : ''}`}
+                    style={{ left: `${pin.x}%`, top: `${pin.y}%` }}
+                    onClick={() => setSelectedPin(pin)}
+                  >
+                    <div className="pinpoint-marker">
+                      <div className="pinpoint-core"></div>
+                      {isSelected && <div className="pinpoint-radar"></div>}
+                    </div>
+                    <span className="pinpoint-label">{pin.id === 'ma' ? '◆ Maroc' : pin.name}</span>
+                  </div>
+                );
+              })}
+
+              {/* Active Popup Card */}
+              <div
+                className="map-floating-popup"
+                style={{
+                  left: `${Math.min(75, Math.max(22, selectedPin.x - 4))}%`,
+                  top: `${Math.min(68, selectedPin.y + 10)}%`
+                }}
+              >
+                <div className="popup-header">
+                  <FlagIcon country={selectedPin.code} width={20} height={14} />
+                  <span className="popup-title">{selectedPin.name}</span>
+                </div>
+                <div className="popup-row">
+                  <span>Capitale</span>
+                  <strong>{selectedPin.cap}</strong>
+                </div>
+                <div className="popup-row">
+                  <span>Population</span>
+                  <strong>{selectedPin.pop}</strong>
+                </div>
+                <div className="popup-row">
+                  <span>Devise</span>
+                  <strong>{selectedPin.cur}</strong>
+                </div>
+                <button
+                  className="popup-btn"
+                  onClick={() => handleCountryClick(selectedPin.code)}
+                >
+                  <span>Voir le pays</span>
+                  <ArrowRight size={13} />
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Interactive Country Selector Tabs inside Mockup */}
-          <div className="mockup-country-tabs">
-            {heroDemoCountries.map((c, idx) => (
+          {/* Right: Pays populaires grid */}
+          <div className="explore-popular-panel">
+            <div className="popular-panel-header">
+              <h3>Pays populaires</h3>
+              <button className="view-all-link" onClick={onNavigateToDashboard}>
+                Voir tous →
+              </button>
+            </div>
+
+            <div className="popular-grid-2x2">
+              {/* 1. Maroc */}
+              <div className="popular-card" onClick={() => handleCountryClick('MA')}>
+                <div className="card-top">
+                  <FlagIcon country="MA" width={32} height={22} radius={4} />
+                  <div className="card-arrow-icon"><ArrowRight size={15} /></div>
+                </div>
+                <div className="card-body">
+                  <h4>Maroc</h4>
+                  <p>Rabat · 37,8 M</p>
+                  <span className="card-curr-badge">MAD</span>
+                </div>
+              </div>
+
+              {/* 2. France */}
+              <div className="popular-card" onClick={() => handleCountryClick('FR')}>
+                <div className="card-top">
+                  <FlagIcon country="FR" width={32} height={22} radius={4} />
+                  <div className="card-arrow-icon"><ArrowRight size={15} /></div>
+                </div>
+                <div className="card-body">
+                  <h4>France</h4>
+                  <p>Paris · 68,4 M</p>
+                  <span className="card-curr-badge">EUR</span>
+                </div>
+              </div>
+
+              {/* 3. États-Unis */}
+              <div className="popular-card" onClick={() => handleCountryClick('US')}>
+                <div className="card-top">
+                  <FlagIcon country="US" width={32} height={22} radius={4} />
+                  <div className="card-arrow-icon"><ArrowRight size={15} /></div>
+                </div>
+                <div className="card-body">
+                  <h4>États-Unis</h4>
+                  <p>Washington · 340 M</p>
+                  <span className="card-curr-badge">USD</span>
+                </div>
+              </div>
+
+              {/* 4. Japon */}
+              <div className="popular-card" onClick={() => handleCountryClick('JP')}>
+                <div className="card-top">
+                  <FlagIcon country="JP" width={32} height={22} radius={4} />
+                  <div className="card-arrow-icon"><ArrowRight size={15} /></div>
+                </div>
+                <div className="card-body">
+                  <h4>Japon</h4>
+                  <p>Tokyo · 123 M</p>
+                  <span className="card-curr-badge">JPY</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 3. SECTION: WORLD AI & TAUX DE CHANGE ─────────────── */}
+      <section className="mock-section" id="world-ai">
+        <div className="ai-forex-split-grid">
+          {/* Left Card: World AI */}
+          <div className="mock-card-ai">
+            <div className="card-ai-header">
+              <div className="ai-header-icon">
+                <Bot size={24} color="#38bdf8" />
+              </div>
+              <div>
+                <h3>World AI</h3>
+                <p>Posez toutes vos questions sur un pays.</p>
+              </div>
+            </div>
+
+            <div className="ai-content-inner">
+              {/* Chat simulation side */}
+              <div className="ai-chat-column">
+                <div className="chat-stream-box">
+                  {chatMessages.map((m, idx) => (
+                    <div key={idx} className={`chat-bubble-row ${m.type}`}>
+                      {m.type === 'ai' && (
+                        <div className="ai-avatar-badge">
+                          <Bot size={14} color="#38bdf8" />
+                        </div>
+                      )}
+                      <div className="bubble-text">
+                        <p>{m.text}</p>
+                        {m.time && <span className="bubble-time">{m.time}</span>}
+                      </div>
+                      {m.type === 'user' && (
+                        <div className="user-icon-tiny">
+                          <ArrowRight size={12} color="#94a3b8" />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="chat-input-bar">
+                  <input
+                    type="text"
+                    placeholder="Posez votre question..."
+                    value={userQuery}
+                    onChange={(e) => setUserQuery(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSendChat()}
+                  />
+                  <button className="chat-send-btn" onClick={() => handleSendChat()}>
+                    <ArrowRight size={15} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Suggested Questions side */}
+              <div className="ai-suggestions-column">
+                <h4>Questions suggérées</h4>
+                <div className="suggestions-list">
+                  <button
+                    className="suggestion-pill-item"
+                    onClick={() => handleSendChat('Quel est le taux de change ?')}
+                  >
+                    <span>Quel est le taux de change ?</span>
+                    <ArrowRight size={13} />
+                  </button>
+                  <button
+                    className="suggestion-pill-item"
+                    onClick={() => handleSendChat('Quelle est la population ?')}
+                  >
+                    <span>Quelle est la population ?</span>
+                    <ArrowRight size={13} />
+                  </button>
+                  <button
+                    className="suggestion-pill-item"
+                    onClick={() => handleSendChat('Quelles sont les dernières actualités ?')}
+                  >
+                    <span>Quelles sont les dernières actualités ?</span>
+                    <ArrowRight size={13} />
+                  </button>
+                  <button
+                    className="suggestion-pill-item"
+                    onClick={() => handleSendChat('Quelle est la devise utilisée ?')}
+                  >
+                    <span>Quelle est la devise utilisée ?</span>
+                    <ArrowRight size={13} />
+                  </button>
+                </div>
+
+                <button className="btn-start-conversation" onClick={onNavigateToDashboard}>
+                  <span>Démarrer une conversation</span>
+                  <ArrowRight size={15} />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Card: Taux de change en direct */}
+          <div className="mock-card-forex">
+            <div className="forex-header">
+              <div className="forex-title-group">
+                <div className="forex-icon-circle">
+                  <TrendingUp size={19} color="#38bdf8" />
+                </div>
+                <h3>Taux de change en direct</h3>
+              </div>
+              <button className="view-all-link" onClick={onNavigateToDashboard}>
+                Voir tous →
+              </button>
+            </div>
+
+            <div className="forex-rates-list">
+              {rates.map((r, i) => (
+                <div key={i} className="forex-rate-row" onClick={onNavigateToDashboard}>
+                  <div className="rate-pair-left">
+                    <FlagIcon country={r.flagCode} width={30} height={20} radius={3} />
+                    <div>
+                      <div className="rate-pair-title">{r.pair}</div>
+                      <div className="rate-main-value">
+                        {r.symbol}1 = {r.rate}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="rate-trend-right">
+                    <span className="rate-change-badge">{r.change}</span>
+                    <svg className="sparkline-svg" width="90" height="24" viewBox="0 0 90 24">
+                      <path
+                        d={r.path}
+                        fill="none"
+                        stroke="#10b981"
+                        strokeWidth="2.2"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="forex-footer-status">
+              <span className="green-pulse-dot"></span>
+              <span>Mis à jour il y a 2 min</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 4. SECTION: DERNIÈRES ACTUALITÉS ─────────────────── */}
+      <section className="mock-section" id="dernieres-actualites">
+        <div className="mock-section-header actualites-header">
+          <div className="section-title-wrapper">
+            <div className="section-icon-circle">
+              <Newspaper size={22} color="#38bdf8" />
+            </div>
+            <div>
+              <h2 className="mock-section-title">Dernières actualités</h2>
+              <p className="mock-section-subtitle">Restez informé des événements qui façonnent le monde.</p>
+            </div>
+          </div>
+
+          {/* Category Filter Pills */}
+          <div className="news-filter-pills">
+            {['Tous', 'Politique', 'Économie', 'Technologie', 'Sport', 'Monde'].map((cat) => (
               <button
-                key={c.code}
-                className={`mockup-tab-pill ${idx === mockupCountryIndex ? 'active' : ''}`}
-                onClick={() => setMockupCountryIndex(idx)}
+                key={cat}
+                className={`news-cat-pill ${newsFilter === cat ? 'active' : ''}`}
+                onClick={() => setNewsFilter(cat)}
               >
-                <span>{c.flag}</span>
-                <span>{c.name}</span>
-                <span className="iso-code-badge" style={{ fontSize: '0.66rem', padding: '1px 5px' }}>
-                  {c.code}
-                </span>
+                {cat}
               </button>
             ))}
           </div>
-
-          {/* Mockup Body Content */}
-          <div className="mockup-body">
-            {/* Country Header Strip */}
-            <div className="mockup-hero-strip">
-              <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                <span style={{ fontSize: '2.4rem' }}>{currentDemo.flag}</span>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <div style={{ fontSize: '1.35rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                      {currentDemo.name}
-                    </div>
-                    {currentDemo.conflicts?.threatLevel && (
-                      <div
-                        className={`threat-badge ${currentDemo.conflicts.threatLevel.toLowerCase()}`}
-                        style={{ fontSize: '0.7rem', padding: '2px 8px' }}
-                      >
-                        <AlertTriangle size={11} />
-                        THREAT: {currentDemo.conflicts.threatLevel}
-                      </div>
-                    )}
-                  </div>
-                  <div style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginTop: 3 }}>
-                    Capital: <strong style={{ color: 'var(--text-primary)' }}>{currentDemo.capital}</strong> • 
-                    Region: <span style={{ color: 'var(--cyan-primary)' }}>{currentDemo.region}</span> • 
-                    Population: {new Intl.NumberFormat('en-US').format(currentDemo.population)}
-                  </div>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', gap: 10 }}>
-                <button
-                  className="btn btn-secondary"
-                  style={{ padding: '8px 14px', fontSize: '0.8rem' }}
-                  onClick={onNavigateToMap}
-                >
-                  <Globe size={14} color="var(--cyan-primary)" />
-                  <span>View on Dot Map</span>
-                </button>
-                <button
-                  className="btn btn-primary"
-                  style={{ padding: '8px 16px', fontSize: '0.82rem' }}
-                  onClick={onNavigateToDashboard}
-                >
-                  <span>Open Full Dossier</span>
-                  <ArrowRight size={14} />
-                </button>
-              </div>
-            </div>
-
-            {/* 3-Column Metrics Surface */}
-            <div className="mockup-grid">
-              {/* FX Spot Card */}
-              <div className="mockup-card">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-                    SPOT FOREX RATE
-                  </div>
-                  <span className="ticker-change up">+0.12% 24h</span>
-                </div>
-                <div
-                  style={{
-                    fontSize: '1.45rem',
-                    fontWeight: 800,
-                    color: 'var(--cyan-primary)',
-                    fontFamily: 'var(--font-mono)',
-                    margin: '8px 0 4px'
-                  }}
-                >
-                  {demoSpotRateText}
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: '0.73rem', color: 'var(--text-secondary)' }}>
-                    Currency: {currentDemo.currency} ({currentDemo.currencySymbol})
-                  </span>
-                  <MiniSparkline up={true} />
-                </div>
-              </div>
-
-              {/* Macro Indicators Card */}
-              <div className="mockup-card">
-                <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)', fontWeight: 600 }}>
-                  MACROECONOMIC PROFILE
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: 8 }}>
-                  <div>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>GDP NOMINAL</div>
-                    <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--emerald)' }}>
-                      {currentDemo.economics?.gdpNominal || '$142.8B'}
-                    </div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>GROWTH RATE</div>
-                    <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--cyan-primary)' }}>
-                      {currentDemo.economics?.gdpGrowthRate || '+3.4%'}
-                    </div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>INFLATION</div>
-                    <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--amber)' }}>
-                      {currentDemo.economics?.inflationRate || '1.8%'}
-                    </div>
-                  </div>
-                  <div>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>CREDIT RATING</div>
-                    <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                      {currentDemo.economics?.creditRating || 'BB+'}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Gemini AI Briefing Card */}
-              <div className="mockup-card">
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.74rem', color: 'var(--cyan-primary)', fontWeight: 600 }}>
-                  <Bot size={14} />
-                  <span>GEMINI SOVEREIGN ANALYST</span>
-                </div>
-                <div
-                  style={{
-                    fontSize: '0.82rem',
-                    color: 'var(--text-secondary)',
-                    lineHeight: 1.5,
-                    marginTop: 8,
-                    fontStyle: 'italic'
-                  }}
-                >
-                  "{currentDemo.conflicts?.geopoliticalAnalysis || 'Strategic maritime pivot, renewable energy investments, and robust multilateral partnerships reinforce macro resilience.'}"
-                </div>
-                {currentDemo.conflicts?.securityAlliances?.length > 0 && (
-                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 10 }}>
-                    {currentDemo.conflicts.securityAlliances.slice(0, 2).map((a, i) => (
-                      <span key={i} className="alliance-pill" style={{ fontSize: '0.68rem', padding: '2px 8px' }}>
-                        {a}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
         </div>
-      </section>
 
-      {/* ── Key Metrics Counter Section ──────────────────────── */}
-      <section className="stats-section">
-        <div className="stats-grid-container">
-          {stats.map((s, idx) => (
-            <div key={idx} className="stat-counter-box">
-              <div className="stat-counter-value">{s.value}</div>
-              <div className="stat-counter-label">{s.label}</div>
-              <div className="stat-counter-sub">{s.sub}</div>
+        {/* 4 News Cards Grid matching mockup */}
+        <div className="news-cards-grid">
+          {/* Card 1: Maroc */}
+          <div className="news-card" onClick={() => handleCountryClick('MA')}>
+            <div className="news-image-wrapper">
+              <img
+                src="https://images.unsplash.com/photo-1509233631037-deb7efd36207?w=600&auto=format&fit=crop&q=80"
+                alt="Maroc"
+                className="news-image"
+              />
+              <span className="news-badge-overlay">
+                <FlagIcon country="MA" width={14} height={10} /> Maroc · Il y a 2h
+              </span>
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Dotted World Map Feature Spotlight ────────────────── */}
-      <section className="map-spotlight-section">
-        <div className="map-spotlight-card glass-card">
-          <div className="map-spotlight-content">
-            <div className="brand-badge" style={{ background: 'rgba(6,182,212,0.15)', color: 'var(--cyan-primary)' }}>
-              REVOLUTIONARY VISUALIZATION
-            </div>
-            <h2 className="section-title" style={{ textAlign: 'left', margin: '14px 0' }}>
-              True Dotted Canvas World Intelligence Map
-            </h2>
-            <p className="section-description" style={{ textAlign: 'left', maxWidth: 540 }}>
-              Rendered on high-speed HTML5 Canvas at 60 FPS, every nation is represented by an intelligent dot matrix. 
-              Clicking any nation highlights its continental territory in luminous cyan, displaying live geopolitical threat levels, 
-              diplomatic ties, and macroeconomic KPIs in real-time.
-            </p>
-
-            <div className="map-spotlight-features">
-              <div className="map-feature-item">
-                <CheckCircle2 size={16} color="var(--emerald)" />
-                <span>Zero-latency O(1) spatial dot picking</span>
-              </div>
-              <div className="map-feature-item">
-                <CheckCircle2 size={16} color="var(--emerald)" />
-                <span>Threat level color-coded dots (Critical, Elevated, Moderate, Low)</span>
-              </div>
-              <div className="map-feature-item">
-                <CheckCircle2 size={16} color="var(--emerald)" />
-                <span>Seamless Dark & Light mode dynamic theme contrast</span>
-              </div>
-            </div>
-
-            <div style={{ marginTop: 24 }}>
-              <button className="btn btn-primary btn-hero" onClick={onNavigateToMap}>
-                <Globe size={18} />
-                <span>Launch Interactive Dot Map</span>
-                <ChevronRight size={18} />
+            <div className="news-content">
+              <h3>Le Maroc annonce un nouveau plan de développement économique</h3>
+              <button className="news-read-link">
+                <span>Lire l'article</span>
+                <ArrowRight size={13} />
               </button>
             </div>
           </div>
 
-          <div className="map-spotlight-preview" onClick={onNavigateToMap} title="Click to open interactive map">
-            <div className="preview-map-mesh">
-              <div className="radar-sweep" />
-              <div className="preview-dot-sample pds-1" />
-              <div className="preview-dot-sample pds-2" />
-              <div className="preview-dot-sample pds-3" />
-              <div className="preview-map-overlay-text">
-                <Globe size={32} color="var(--cyan-primary)" />
-                <span style={{ fontWeight: 700, fontSize: '1rem', color: '#fff', marginTop: 8 }}>
-                  ENTER LIVE ATLAS
-                </span>
-                <span style={{ fontSize: '0.76rem', color: 'var(--cyan-primary)' }}>
-                  Click to Explore 195+ Nations &rarr;
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Interactive Live Currency Quick-Converter ─────────── */}
-      <section className="interactive-converter-section">
-        <div className="section-header">
-          <span className="brand-badge">INTERACTIVE LIVE TOOL</span>
-          <h2 className="section-title">Instant Forex Spot Rate Calculator</h2>
-          <p className="section-description">
-            Test our conversion engine live. Exchange rates refreshed with continuous spread updates.
-          </p>
-        </div>
-
-        <div className="converter-card glass-card">
-          <div className="converter-inputs-row">
-            <div className="calc-group">
-              <label className="calc-label">AMOUNT</label>
-              <input
-                type="number"
-                value={calcAmount}
-                onChange={(e) => setCalcAmount(Math.max(0, Number(e.target.value)))}
-                className="calc-input"
+          {/* Card 2: France */}
+          <div className="news-card" onClick={() => handleCountryClick('FR')}>
+            <div className="news-image-wrapper">
+              <img
+                src="https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=600&auto=format&fit=crop&q=80"
+                alt="France"
+                className="news-image"
               />
+              <span className="news-badge-overlay">
+                <FlagIcon country="FR" width={14} height={10} /> France · Il y a 3h
+              </span>
             </div>
-
-            <div className="calc-group">
-              <label className="calc-label">FROM</label>
-              <select
-                value={calcBase}
-                onChange={(e) => setCalcBase(e.target.value)}
-                className="calc-select"
-              >
-                <option value="USD">USD - US Dollar ($)</option>
-                <option value="EUR">EUR - Euro (€)</option>
-                <option value="MAD">MAD - Moroccan Dirham (DH)</option>
-              </select>
-            </div>
-
-            <div className="calc-swap-icon">
-              <ArrowRight size={20} color="var(--cyan-primary)" />
-            </div>
-
-            <div className="calc-group">
-              <label className="calc-label">TO</label>
-              <select
-                value={calcTarget}
-                onChange={(e) => setCalcTarget(e.target.value)}
-                className="calc-select"
-              >
-                <option value="MAD">MAD - Moroccan Dirham (DH)</option>
-                <option value="USD">USD - US Dollar ($)</option>
-                <option value="EUR">EUR - Euro (€)</option>
-                <option value="GBP">GBP - British Pound (£)</option>
-                <option value="JPY">JPY - Japanese Yen (¥)</option>
-                <option value="CAD">CAD - Canadian Dollar ($)</option>
-              </select>
+            <div className="news-content">
+              <h3>La France renforce sa coopération européenne sur l'énergie</h3>
+              <button className="news-read-link">
+                <span>Lire l'article</span>
+                <ArrowRight size={13} />
+              </button>
             </div>
           </div>
 
-          <div className="calc-result-box">
-            <div>
-              <span className="calc-result-sub">
-                {calcAmount} {calcBase} =
+          {/* Card 3: États-Unis */}
+          <div className="news-card" onClick={() => handleCountryClick('US')}>
+            <div className="news-image-wrapper">
+              <img
+                src="https://images.unsplash.com/photo-1501466044931-62695aada8e9?w=600&auto=format&fit=crop&q=80"
+                alt="États-Unis"
+                className="news-image"
+              />
+              <span className="news-badge-overlay">
+                <FlagIcon country="US" width={14} height={10} /> États-Unis · Il y a 5h
               </span>
-              <div className="calc-result-val">
-                {calculatedOutput} <span style={{ fontSize: '1.1rem', color: 'var(--cyan-primary)' }}>{calcTarget}</span>
+            </div>
+            <div className="news-content">
+              <h3>Les États-Unis annoncent de nouvelles mesures pour l'innovation</h3>
+              <button className="news-read-link">
+                <span>Lire l'article</span>
+                <ArrowRight size={13} />
+              </button>
+            </div>
+          </div>
+
+          {/* Card 4: Japon */}
+          <div className="news-card" onClick={() => handleCountryClick('JP')}>
+            <div className="news-image-wrapper">
+              <img
+                src="https://images.unsplash.com/photo-1578637387939-43c525550085?w=600&auto=format&fit=crop&q=80"
+                alt="Japon"
+                className="news-image"
+              />
+              <span className="news-badge-overlay">
+                <FlagIcon country="JP" width={14} height={10} /> Japon · Il y a 6h
+              </span>
+            </div>
+            <div className="news-content">
+              <h3>Le Japon mise sur la transition verte pour 2050</h3>
+              <button className="news-read-link">
+                <span>Lire l'article</span>
+                <ArrowRight size={13} />
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 5. SECTION: CTA BANNER HORIZON ────────────────────── */}
+      <section className="mock-cta-banner">
+        <div className="banner-horizon-glow"></div>
+        <div className="banner-inner-content">
+          <div className="banner-earth-image"></div>
+          <div className="banner-left">
+            <div className="banner-title-row">
+              <div className="banner-compass-icon">
+                <Compass size={22} color="#38bdf8" />
+              </div>
+              <h2>Découvrez le monde autrement.</h2>
+            </div>
+
+            <div className="banner-features-row">
+              <div className="feature-item">
+                <div className="feature-icon"><FileText size={15} /></div>
+                <span>Toutes les données essentielles des pays.</span>
+              </div>
+              <div className="feature-item">
+                <div className="feature-icon"><Newspaper size={15} /></div>
+                <span>Toutes les actualités importantes.</span>
+              </div>
+              <div className="feature-item">
+                <div className="feature-icon"><Bot size={15} /></div>
+                <span>Une IA pour répondre à vos questions.</span>
               </div>
             </div>
-            <button className="btn btn-primary" onClick={onNavigateToDashboard}>
-              <span>Full Multi-Currency Grid</span>
-              <ChevronRight size={16} />
-            </button>
           </div>
+
+          <button className="banner-cta-btn" onClick={onNavigateToDashboard}>
+            <span>Commencer maintenant</span>
+            <ArrowRight size={16} />
+          </button>
         </div>
       </section>
 
-      {/* ── Architecture & Capabilities Grid ─────────────────── */}
-      <section className="features-section" id="features">
-        <div className="section-header">
-          <span className="brand-badge">ARCHITECTURE & CAPABILITIES</span>
-          <h2 className="section-title">Engineered for Sovereign Macro Precision</h2>
-          <p className="section-description">
-            Combining real-time financial APIs, national census data, and Google Gemini AI 
-            into a singular, unified command terminal.
-          </p>
-        </div>
-
-        <div className="features-grid">
-          {coreFeatures.map((f, idx) => (
-            <div key={idx} className="feature-card glass-card">
-              <div className="feature-icon-box">{f.icon}</div>
-              <span className="feature-badge">{f.badge}</span>
-              <h3 className="feature-title">{f.title}</h3>
-              <p className="feature-desc">{f.description}</p>
-              {f.actionLabel && (
-                <button
-                  className="feature-action-btn"
-                  onClick={f.onAction}
-                >
-                  <span>{f.actionLabel}</span>
-                </button>
-              )}
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Data Pipeline & Infrastructure ────────────────────── */}
-      <section className="pipeline-section">
-        <div className="section-header">
-          <span className="brand-badge">DATA PIPELINE</span>
-          <h2 className="section-title">End-to-End Enterprise Architecture</h2>
-          <p className="section-description">
-            Robust data flow connecting decentralized global APIs to our Spring Boot modular core and React frontend.
-          </p>
-        </div>
-
-        <div className="pipeline-diagram-card glass-card">
-          <div className="pipeline-step">
-            <div className="pipeline-icon-box">
-              <Database size={22} color="var(--cyan-primary)" />
-            </div>
-            <div className="pipeline-title">Global Ingestion</div>
-            <div className="pipeline-desc">ExchangeRate-API, NewsAPI, TopoJSON, RestCountries</div>
-          </div>
-          <div className="pipeline-connector">&rarr;</div>
-
-          <div className="pipeline-step">
-            <div className="pipeline-icon-box">
-              <Cpu size={22} color="var(--emerald)" />
-            </div>
-            <div className="pipeline-title">Spring Boot 3.2.5</div>
-            <div className="pipeline-desc">Modular Monolith, JWT Auth, WebClient Reactive Caching</div>
-          </div>
-          <div className="pipeline-connector">&rarr;</div>
-
-          <div className="pipeline-step">
-            <div className="pipeline-icon-box">
-              <Bot size={22} color="var(--purple, #a855f7)" />
-            </div>
-            <div className="pipeline-title">Google Gemini AI</div>
-            <div className="pipeline-desc">Context-stuffed sovereign intelligence inference</div>
-          </div>
-          <div className="pipeline-connector">&rarr;</div>
-
-          <div className="pipeline-step">
-            <div className="pipeline-icon-box">
-              <Globe size={22} color="var(--cyan-primary)" />
-            </div>
-            <div className="pipeline-title">React Terminal & Dot Map</div>
-            <div className="pipeline-desc">60 FPS Canvas Dotted Atlas, Dark/Light Themes</div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Live Countries Watchlist Grid ─────────────────────── */}
-      <section className="countries-matrix-section">
-        <div className="section-header">
-          <span className="brand-badge" style={{ background: 'rgba(6,182,212,0.15)', color: 'var(--cyan-primary)' }}>
-            INSTANT ACCESS
-          </span>
-          <h2 className="section-title">Track Sovereign Nations Worldwide</h2>
-          <p className="section-description">
-            Jump directly into in-depth profiles across Africa, Europe, the Americas, Asia, and the Middle East.
-          </p>
-        </div>
-
-        <div className="country-pills-row">
-          {COUNTRIES.slice(0, 14).map((c) => (
-            <div
-              key={c.code}
-              className="country-pill-item"
-              onClick={onNavigateToDashboard}
-            >
-              <span style={{ fontSize: '1.25rem' }}>{c.flag}</span>
-              <span style={{ fontWeight: 600, fontSize: '0.88rem' }}>{c.name}</span>
-              <span className="iso-code-badge">{c.code}</span>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── Final Call to Action ─────────────────────────────── */}
-      <section className="cta-section">
-        <div className="cta-card glass-card">
-          <div className="cta-glow" />
-          <h2 className="cta-title">Ready to Monitor Global Geopolitics & Forex?</h2>
-          <p className="cta-subtitle">
-            Experience the modular WorldWatch terminal today. Create an analyst profile or explore instantly with live guest access.
-          </p>
-          <div className="cta-buttons">
-            <button className="btn btn-primary btn-hero" onClick={onNavigateToDashboard}>
-              <Zap size={18} />
-              <span>Launch Terminal Now</span>
-              <ArrowRight size={18} />
-            </button>
-            <button className="btn btn-secondary btn-hero" onClick={onNavigateToMap}>
-              <Globe size={18} color="var(--cyan-primary)" />
-              <span>Explore Dotted World Map</span>
-            </button>
-            <button className="btn btn-secondary btn-hero" onClick={onNavigateToSignIn}>
-              <span>Sign In / Create Account</span>
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Modern FinTech Footer ────────────────────────────── */}
-      <footer className="landing-footer">
-        <div className="footer-content">
+      {/* ── 6. FOOTER ─────────────────────────────────────────── */}
+      <footer className="mock-footer">
+        <div className="footer-top-row">
           <div className="footer-brand">
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <div className="brand-icon-wrapper" style={{ width: 34, height: 34 }}>
-                <Globe size={18} />
-              </div>
-              <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: '1.15rem', color: '#fff' }}>
-                WORLD WATCH
+            <div className="footer-logo">
+              <svg width="28" height="28" viewBox="0 0 36 36" fill="none">
+                <circle cx="18" cy="18" r="16" fill="url(#footerGlow)" stroke="#06b6d4" strokeWidth="1.5" />
+                <path d="M10 12L14 24L18 16L22 24L26 12" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                <circle cx="18" cy="17" r="4" fill="#06b6d4" fillOpacity="0.4" stroke="#22d3ee" strokeWidth="1" />
+                <defs>
+                  <radialGradient id="footerGlow" cx="0.5" cy="0.5" r="0.5" fx="0.5" fy="0.5">
+                    <stop offset="0%" stopColor="#0891b2" stopOpacity="0.8" />
+                    <stop offset="100%" stopColor="#0a192f" stopOpacity="0.9" />
+                  </radialGradient>
+                </defs>
+              </svg>
+              <span className="footer-brand-title">
+                <strong>World</strong> <span style={{ color: '#38bdf8' }}>Watch</span>
               </span>
             </div>
-            <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: 8, maxWidth: 360, lineHeight: 1.6 }}>
-              Modular Monolith Geopolitical & Forex Intelligence platform powered by Spring Boot 3.2.5, Spring AI Gemini, and React.
-            </p>
+            <p className="footer-slogan">Un monde d'infos, en un clic.</p>
           </div>
 
           <div className="footer-links">
-            <div className="footer-col">
-              <h4>TERMINAL</h4>
-              <a onClick={onNavigateToDashboard}>Dashboard Terminal</a>
-              <a onClick={onNavigateToMap}>Dotted World Map</a>
-              <a onClick={onNavigateToSignIn}>Sign In / Register</a>
-              <a href="#features">Forex Spot Rates</a>
-            </div>
-            <div className="footer-col">
-              <h4>INTELLIGENCE</h4>
-              <a onClick={onNavigateToDashboard}>Macroeconomic Dossiers</a>
-              <a onClick={onNavigateToDashboard}>Conflict & Threat Matrix</a>
-              <a onClick={onNavigateToDashboard}>Yahoo Finance News</a>
-              <a onClick={onNavigateToDashboard}>Gemini AI Analyst</a>
-            </div>
-            <div className="footer-col">
-              <h4>SECURITY & ARCH</h4>
-              <a>Stateless JWT</a>
-              <a>Spring Security 6</a>
-              <a>Encrypted Storage</a>
-              <a>CORS Enabled</a>
-            </div>
+            <a href="#hero" onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>Accueil</a>
+            <a href="#explore-monde" onClick={(e) => { e.preventDefault(); document.getElementById('explore-monde')?.scrollIntoView({ behavior: 'smooth' }); }}>Explorer</a>
+            <a onClick={onNavigateToDashboard}>Pays</a>
+            <a href="#dernieres-actualites" onClick={(e) => { e.preventDefault(); document.getElementById('dernieres-actualites')?.scrollIntoView({ behavior: 'smooth' }); }}>Actualités</a>
+            <a onClick={onNavigateToDashboard}>Favoris</a>
+          </div>
+
+          <div className="footer-socials">
+            {/* X / Twitter */}
+            <a href="https://x.com" target="_blank" rel="noreferrer" title="X">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+              </svg>
+            </a>
+            {/* Instagram */}
+            <a href="https://instagram.com" target="_blank" rel="noreferrer" title="Instagram">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+              </svg>
+            </a>
+            {/* YouTube */}
+            <a href="https://youtube.com" target="_blank" rel="noreferrer" title="YouTube">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+              </svg>
+            </a>
+            {/* LinkedIn */}
+            <a href="https://linkedin.com" target="_blank" rel="noreferrer" title="LinkedIn">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 8.76a1.6 1.6 0 1 0 0-3.2 1.6 1.6 0 0 0 0 3.2m1.4 9.74v-8.37H5.06v8.37z" />
+              </svg>
+            </a>
           </div>
         </div>
 
-        <div className="footer-bottom">
-          <span>&copy; {new Date().getFullYear()} WorldWatch Intelligence Inc. All rights reserved.</span>
-          <span style={{ color: 'var(--cyan-primary)', fontWeight: 600 }}>
-            ● Status: All Systems Operational (99.99%)
-          </span>
+        <div className="footer-bottom-row">
+          <p>© 2025 World Watch. Tous droits réservés.</p>
         </div>
       </footer>
     </div>
