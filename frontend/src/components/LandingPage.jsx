@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Globe,
   TrendingUp,
@@ -36,13 +36,15 @@ function AnimatedNetworkCanvas({ isDark }) {
     const ctx = canvas.getContext('2d');
     let animationFrameId;
 
-    let width = (canvas.width = canvas.parentElement.clientWidth);
-    let height = (canvas.height = canvas.parentElement.clientHeight);
+    const parent = canvas.parentElement;
+    let width = (canvas.width = parent ? parent.clientWidth : window.innerWidth);
+    let height = (canvas.height = Math.max(parent ? parent.clientHeight : 0, window.innerHeight));
 
     const handleResize = () => {
       if (!canvas) return;
-      width = canvas.width = canvas.parentElement.clientWidth;
-      height = canvas.height = canvas.parentElement.clientHeight;
+      const p = canvas.parentElement;
+      width = canvas.width = p ? p.clientWidth : window.innerWidth;
+      height = canvas.height = Math.max(p ? p.clientHeight : 0, window.innerHeight);
     };
     window.addEventListener('resize', handleResize);
 
@@ -241,7 +243,7 @@ export default function LandingPage({
     { pair: 'USD / CAD', rate: '1.3831', change: '-0.09%', up: false },
     { pair: 'USD / SAR', rate: '3.7500', change: '+0.01%', up: true },
     { pair: 'EUR / GBP', rate: '0.8588', change: '+0.11%', up: true },
-    { pair: 'USD / CHF', rate: '0.8099', change: '-0.05%', false: true },
+    { pair: 'USD / CHF', rate: '0.8099', change: '-0.05%', up: false },
     { pair: 'USD / CNY', rate: '6.7194', change: '+0.03%', up: true }
   ]);
   const [liveRatesMap, setLiveRatesMap] = useState(null);
