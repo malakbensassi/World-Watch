@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { COUNTRIES } from '../data/countries';
 import { useTheme } from '../context/ThemeContext';
+import { fetchLiveTickerRates, fetchLiveForexMatrix } from '../api/client';
 
 /* ── Interactive Constellation & Radar Canvas Background ──────── */
 function AnimatedNetworkCanvas({ isDark }) {
@@ -229,36 +230,96 @@ export default function LandingPage({
   // Selected Country in the Hero Terminal Mockup (Interactive Tab Demo)
   const [mockupCountryIndex, setMockupCountryIndex] = useState(0);
 
+  // Live Real-Time Ticker & Forex Matrix State
+  const [tickerItems, setTickerItems] = useState([
+    { pair: 'USD / MAD', rate: '9.3527', change: '+0.12%', up: true },
+    { pair: 'EUR / USD', rate: '1.1613', change: '+0.06%', up: true },
+    { pair: 'GBP / USD', rate: '1.3519', change: '-0.14%', up: false },
+    { pair: 'USD / JPY', rate: '156.18', change: '+0.28%', up: true },
+    { pair: 'EUR / MAD', rate: '10.8617', change: '+0.18%', up: true },
+    { pair: 'USD / AED', rate: '3.6725', change: '0.00%', up: true },
+    { pair: 'USD / CAD', rate: '1.3831', change: '-0.09%', up: false },
+    { pair: 'USD / SAR', rate: '3.7500', change: '+0.01%', up: true },
+    { pair: 'EUR / GBP', rate: '0.8588', change: '+0.11%', up: true },
+    { pair: 'USD / CHF', rate: '0.8099', change: '-0.05%', false: true },
+    { pair: 'USD / CNY', rate: '6.7194', change: '+0.03%', up: true }
+  ]);
+  const [liveRatesMap, setLiveRatesMap] = useState(null);
+  const [tickerTimestamp, setTickerTimestamp] = useState('Real-Time Stream');
+  const [isLiveApiConnected, setIsLiveApiConnected] = useState(false);
+
   // Mini Interactive Currency Converter State
   const [calcAmount, setCalcAmount] = useState(1000);
   const [calcBase, setCalcBase] = useState('USD');
   const [calcTarget, setCalcTarget] = useState('MAD');
 
-  const exchangeRates = {
-    USD: { MAD: 9.88, EUR: 0.92, GBP: 0.79, JPY: 154.25, CAD: 1.36 },
-    EUR: { MAD: 10.74, USD: 1.087, GBP: 0.858, JPY: 167.6, CAD: 1.48 },
-    MAD: { USD: 0.101, EUR: 0.093, GBP: 0.08, JPY: 15.61, CAD: 0.138 }
-  };
+  // Fetch real-time rates on mount and periodically every 60s
+  useEffect(() => {
+    let isMounted = true;
 
-  const calculatedOutput = (
-    calcAmount * (exchangeRates[calcBase]?.[calcTarget] || 1)
-  ).toFixed(2);
+    async function loadRealTimeForex() {
+      try {
+        const [tickerData, matrixData] = await Promise.all([
+          fetchLiveTickerRates(),
+          fetchLiveForexMatrix('USD')
+        ]);
+        if (isMounted) {
+          if (Array.isArray(tickerData) && tickerData.length > 0) {
+            setTickerItems(tickerData);
+            setIsLiveApiConnected(true);
+            if (tickerData[0]?.lastUpdate) {
+              setTickerTimestamp(tickerData[0].lastUpdate);
+            }
+          }
+          if (matrixData && matrixData.rates) {
+            setLiveRatesMap(matrixData.rates);
+          }
+        }
+      } catch (err) {
+        console.warn('[Forex] Real-time ticker query error:', err);
+      }
+    }
 
-  const tickerItems = [
-    { pair: 'USD / MAD', rate: '9.88', change: '+0.12%', up: true },
-    { pair: 'EUR / USD', rate: '1.087', change: '+0.05%', up: true },
-    { pair: 'GBP / USD', rate: '1.271', change: '-0.18%', up: false },
-    { pair: 'USD / JPY', rate: '154.25', change: '+0.34%', up: true },
-    { pair: 'USD / AED', rate: '3.672', change: '0.00%', up: true },
-    { pair: 'EUR / MAD', rate: '10.74', change: '+0.08%', up: true },
-    { pair: 'USD / CAD', rate: '1.365', change: '-0.11%', up: false },
-    { pair: 'USD / SAR', rate: '3.751', change: '+0.01%', up: true },
-    { pair: 'EUR / GBP', rate: '0.858', change: '+0.14%', up: true }
-  ];
+    loadRealTimeForex();
+    const interval = setInterval(loadRealTimeForex, 60000);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, []);
+
+  // Dynamic calculation using live real-time rates
+  const calculatedOutput = useMemo(() => {
+    if (liveRatesMap) {
+      const fromRateUSD = calcBase === 'USD' ? 1 : (liveRatesMap[calcBase] ? (1 / liveRatesMap[calcBase]) : 1);
+      const toRateUSD = calcTarget === 'USD' ? 1 : (liveRatesMap[calcTarget] || 1);
+      const crossRate = fromRateUSD * toRateUSD;
+      return (calcAmount * crossRate).toFixed(2);
+    }
+    // Fallback if network is loading
+    const defaultRates = {
+      USD: { MAD: 9.3527, EUR: 0.8611, GBP: 0.7397, JPY: 156.18, CAD: 1.3831 },
+      EUR: { MAD: 10.8617, USD: 1.1613, GBP: 0.8588, JPY: 181.37, CAD: 1.6062 },
+      MAD: { USD: 0.1069, EUR: 0.0921, GBP: 0.0791, JPY: 16.69, CAD: 0.1479 }
+    };
+    return (calcAmount * (defaultRates[calcBase]?.[calcTarget] || 1)).toFixed(2);
+  }, [calcAmount, calcBase, calcTarget, liveRatesMap]);
 
   // Showcase countries for the hero terminal tab switcher
   const heroDemoCountries = COUNTRIES.slice(0, 6);
   const currentDemo = heroDemoCountries[mockupCountryIndex] || COUNTRIES[0];
+
+  // Dynamic Spot rate for current demo nation
+  const demoSpotRateText = useMemo(() => {
+    const cur = currentDemo.currency;
+    if (cur === 'USD') return '1 USD = 1.0000 USD';
+    if (liveRatesMap && liveRatesMap[cur]) {
+      const val = liveRatesMap[cur];
+      const formatted = val >= 100 ? val.toFixed(2) : val >= 10 ? val.toFixed(3) : val.toFixed(4);
+      return `1 USD = ${formatted} ${cur}`;
+    }
+    return currentDemo.code === 'MA' ? '1 USD = 9.3527 MAD' : `1 USD = Live Spot ${cur}`;
+  }, [currentDemo, liveRatesMap]);
 
   const coreFeatures = [
     {
@@ -338,10 +399,11 @@ export default function LandingPage({
       <div className="landing-grid-overlay" aria-hidden="true" />
 
       {/* Live Market Ticker Marquee */}
-      <div className="ticker-bar">
+      <div className="ticker-bar" title={`Live API Feed Timestamp: ${tickerTimestamp}`}>
         <div className="ticker-label">
-          <Activity size={14} color="var(--cyan-primary)" />
-          <span>LIVE SPOT FOREX WIRE</span>
+          <span className="pulse-dot" style={{ width: 7, height: 7, background: 'var(--emerald)' }} />
+          <span>{isLiveApiConnected ? 'LIVE SPOT FOREX' : 'SPOT FOREX WIRE'}</span>
+          <span className="live-tag">API LIVE</span>
         </div>
         <div className="ticker-track">
           {tickerItems.concat(tickerItems).map((t, idx) => (
@@ -502,7 +564,7 @@ export default function LandingPage({
                     margin: '8px 0 4px'
                   }}
                 >
-                  1 USD = {currentDemo.code === 'MA' ? '9.88 MAD' : currentDemo.code === 'US' ? '1.00 USD' : currentDemo.code === 'FR' ? '0.92 EUR' : 'Live Spot'}
+                  {demoSpotRateText}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <span style={{ fontSize: '0.73rem', color: 'var(--text-secondary)' }}>

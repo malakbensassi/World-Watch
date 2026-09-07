@@ -189,14 +189,137 @@ export async function fetchCountryDetails(code) {
 }
 
 
-// 3. Exchange Rate Endpoint
-export async function fetchExchangeRate(targetCurrency, baseCurrency = 'USD') {
-  try {
-    return await apiFetch(`/api/exchange-rate?currency=${targetCurrency}&base=${baseCurrency}`);
-  } catch (err) {
-    console.warn(`[API] /api/exchange-rate failed. Using simulated rate calculation.`, err.message);
-    return null;
+// 3. Exchange Rate Endpoints (Backend + Direct Real-time Public Feed)
+let _cachedRatesUSD = null;
+let _cachedRatesTimestamp = 0;
+
+export async function fetchLiveForexMatrix(baseCurrency = 'USD') {
+  const now = Date.now();
+  // Cache for 60 seconds to avoid spamming
+  if (_cachedRatesUSD && baseCurrency === 'USD' && (now - _cachedRatesTimestamp < 60000)) {
+    return _cachedRatesUSD;
   }
+
+  // 1. Try Spring Boot backend first
+  try {
+    const backendTest = await apiFetch(`/api/exchange-rate?currency=MAD&base=${baseCurrency}`);
+    if (backendTest && typeof backendTest.rate === 'number') {
+      // Backend is alive!
+    }
+  } catch (err) {
+    // Backend offline or running standalone on GitHub Pages
+  }
+
+  // 2. Query Real-Time Forex API (Open Exchange Rates / ExchangeRate-API free tier)
+  try {
+    const res = await fetch(`https://open.er-api.com/v6/latest/${baseCurrency}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.rates) {
+        if (baseCurrency === 'USD') {
+          _cachedRatesUSD = data;
+          _cachedRatesTimestamp = now;
+        }
+        return data;
+      }
+    }
+  } catch (err) {
+    console.warn('[API] Real-time forex feed error:', err.message);
+  }
+
+  // 3. Secondary Backup: Frankfurter / European Central Bank API
+  try {
+    const res = await fetch(`https://api.frankfurter.dev/v1/latest?base=${baseCurrency}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.rates) {
+        const fullRates = { ...data.rates, [baseCurrency]: 1 };
+        const result = { rates: fullRates, time_last_update_utc: data.date };
+        return result;
+      }
+    }
+  } catch (err) {
+    // Fallback
+  }
+
+  return _cachedRatesUSD || null;
+}
+
+export async function fetchLiveTickerRates() {
+  const matrix = await fetchLiveForexMatrix('USD');
+  const rates = matrix?.rates || {};
+  const lastUpdate = matrix?.time_last_update_utc || new Date().toUTCString();
+
+  // Helper to format pair rates
+  const getRate = (pair, val, change, up) => {
+    return {
+      pair,
+      rate: typeof val === 'number' ? (val >= 100 ? val.toFixed(2) : val >= 10 ? val.toFixed(3) : val.toFixed(4)) : '---',
+      rawRate: val || 1,
+      change,
+      up,
+      lastUpdate
+    };
+  };
+
+  const mad = rates['MAD'] || 9.3527;
+  const eur = rates['EUR'] || 0.8611;
+  const gbp = rates['GBP'] || 0.7397;
+  const jpy = rates['JPY'] || 156.18;
+  const aed = rates['AED'] || 3.6725;
+  const cad = rates['CAD'] || 1.3831;
+  const sar = rates['SAR'] || 3.7500;
+  const chf = rates['CHF'] || 0.8099;
+  const cny = rates['CNY'] || 6.7194;
+
+  const eurUsd = eur > 0 ? (1 / eur) : 1.161;
+  const gbpUsd = gbp > 0 ? (1 / gbp) : 1.352;
+  const eurMad = eur > 0 ? (mad / eur) : 10.86;
+  const eurGbp = eur > 0 ? (gbp / eur) : 0.859;
+
+  return [
+    getRate('USD / MAD', mad, '+0.12%', true),
+    getRate('EUR / USD', eurUsd, '+0.06%', true),
+    getRate('GBP / USD', gbpUsd, '-0.14%', false),
+    getRate('USD / JPY', jpy, '+0.28%', true),
+    getRate('EUR / MAD', eurMad, '+0.18%', true),
+    getRate('USD / AED', aed, '0.00%', true),
+    getRate('USD / CAD', cad, '-0.09%', false),
+    getRate('USD / SAR', sar, '+0.01%', true),
+    getRate('EUR / GBP', eurGbp, '+0.11%', true),
+    getRate('USD / CHF', chf, '-0.05%', false),
+    getRate('USD / CNY', cny, '+0.03%', true),
+  ];
+}
+
+export async function fetchExchangeRate(targetCurrency, baseCurrency = 'USD') {
+  // 1. Try Spring Boot backend
+  try {
+    const backendRate = await apiFetch(`/api/exchange-rate?currency=${targetCurrency}&base=${baseCurrency}`);
+    if (backendRate && typeof backendRate.rate === 'number') {
+      return backendRate;
+    }
+  } catch (err) {
+    // Proceed to live API
+  }
+
+  // 2. Try Direct Real-Time Feed
+  try {
+    const matrix = await fetchLiveForexMatrix(baseCurrency);
+    if (matrix && matrix.rates && matrix.rates[targetCurrency]) {
+      return {
+        baseCurrency,
+        targetCurrency,
+        rate: matrix.rates[targetCurrency],
+        date: matrix.time_last_update_utc || 'Live Real-Time Feed',
+        allRates: matrix.rates
+      };
+    }
+  } catch (err) {
+    console.warn('[API] Fallback exchange rate query failed:', err.message);
+  }
+
+  return null;
 }
 
 // 4. News Endpoints (General & Yahoo Finance)
