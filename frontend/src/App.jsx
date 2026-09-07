@@ -184,6 +184,7 @@ export default function App() {
         <LandingPage
           onNavigateToDashboard={() => navigateTo('dashboard')}
           onNavigateToSignIn={() => navigateTo('signin')}
+          onNavigateToMap={() => navigateTo('map')}
         />
       ) : currentView === 'signin' ? (
         <SignInPage
