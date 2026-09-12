@@ -1,8 +1,8 @@
-# World Watch — API Reference (état actuel)
+# World Watch — API Reference
 
 Base URL locale : `http://localhost:8080`
 
-⚠️ Depuis l'ajout de Spring Security, **toutes les routes sauf `/api/auth/**` exigent un header `Authorization: Bearer <token>`** obtenu via `/api/auth/login`.
+⚠️ **Toutes les routes sauf `/api/favorites/**` sont en accès libre.** Seuls les favoris exigent un JWT (`Authorization: Bearer <token>`), obtenu via `/api/auth/login`.
 
 ---
 
@@ -17,22 +17,16 @@ Content-Type: application/json
 
 **Body**
 ```json
-{
-  "username": "test",
-  "password": "pass123"
-}
+{ "username": "test", "password": "pass123" }
 ```
 
 **Réponse 200 OK**
 ```json
-{
-  "id": 1,
-  "username": "test"
-}
+{ "id": 1, "username": "test" }
 ```
 
 **Erreurs possibles**
-- `400` si le username existe déjà (`IllegalArgumentException: Username already taken`)
+- `400` : champs vides/invalides, ou username déjà pris
 
 ---
 
@@ -45,211 +39,219 @@ Content-Type: application/json
 
 **Body**
 ```json
-{
-  "username": "test",
-  "password": "pass123"
-}
+{ "username": "test", "password": "pass123" }
 ```
 
 **Réponse 200 OK**
 ```json
-{
-  "token": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0IiwiaWF0IjoxNzU1..."
-}
+{ "token": "eyJhbGciOiJIUzI1NiJ9..." }
 ```
 
 **Erreurs possibles**
-- `400` si username ou password incorrect (`IllegalArgumentException: Invalid credentials`)
+- `400` : identifiants incorrects ou champs invalides
 
-➡️ **Copie ce token — il faut le mettre dans le header `Authorization` de toutes les requêtes ci-dessous.**
-
----
-
-## 2. Favoris (`com.worldwatch.favorites`)
-
-Toutes les routes ci-dessous nécessitent :
-```
-Authorization: Bearer <token>
-```
-(le `ownerId` est désormais extrait automatiquement du token — plus besoin d'un header `X-User-Id` manuel)
-
-### 2.1 Ajouter un favori
-
-```
-POST /api/favorites?countryCode=MA&countryName=Morocco
-Authorization: Bearer <token>
-```
-
-**Body** : aucun (params dans l'URL)
-
-**Réponse 200 OK**
-```json
-{
-  "id": 1,
-  "countryCode": "MA",
-  "countryName": "Morocco",
-  "ownerId": "test"
-}
-```
+➡️ **Copie ce token pour les endpoints protégés (favoris uniquement).**
 
 ---
 
-### 2.2 Lister mes favoris
+## 2. Données pays (`com.worldwatch.countries`)
 
-```
-GET /api/favorites
-Authorization: Bearer <token>
-```
-
-**Body** : aucun
-
-**Réponse 200 OK**
-```json
-[
-  {
-    "id": 1,
-    "countryCode": "MA",
-    "countryName": "Morocco",
-    "ownerId": "test"
-  }
-]
-```
-
----
-
-### 2.3 Supprimer un favori
-
-```
-DELETE /api/favorites/{id}
-Authorization: Bearer <token>
-```
-
-Exemple : `DELETE /api/favorites/1`
-
-**Body** : aucun
-
-**Réponse** : `200 OK` (pas de contenu)
-
-**Erreurs possibles**
-- `403`/exception si le favori n'appartient pas à l'utilisateur authentifié (`SecurityException: Not authorized to delete this favorite`)
-
----
-
-## 3. Taux de change (`com.worldwatch.exchange`)
-
-```
-GET /api/exchange-rate?currency=MAD&base=USD
-Authorization: Bearer <token>
-```
-
-**Body** : aucun
-
-**Query params**
-| Param | Obligatoire | Défaut | Exemple |
-|---|---|---|---|
-| `currency` | oui | — | `MAD` |
-| `base` | non | `USD` | `EUR` |
-
-**Réponse 200 OK**
-```json
-{
-  "baseCurrency": "USD",
-  "targetCurrency": "MAD",
-  "rate": 9.85,
-  "date": "latest"
-}
-```
-
-*(source : ExchangeRate-API — couvre 160+ devises, y compris MAD)*
-
----
-
-## 4. Actualités (`com.worldwatch.news`)
-
-```
-GET /api/news?country=Morocco
-Authorization: Bearer <token>
-```
-
-**Body** : aucun
-
-**Query params**
-| Param | Obligatoire | Exemple |
-|---|---|---|
-| `country` | oui | `Morocco` |
-
-**Réponse 200 OK**
-```json
-[
-  {
-    "title": "Article title mentioning Morocco",
-    "description": "Short excerpt of the article...",
-    "url": "https://example.com/article",
-    "source": "Source Name",
-    "publishedAt": "2026-08-12T10:00:00Z"
-  }
-]
-```
-
-*(recherche via `qInTitle` + `sortBy=relevancy` pour ne récupérer que les articles où le pays apparaît réellement dans le titre)*
-
----
-
-## 5. Chatbot IA (`com.worldwatch.ai`)
-
-```
-POST /api/chat
-Content-Type: application/json
-Authorization: Bearer <token>
-```
-
-**Body**
-```json
-{
-  "countryCode": "MA",
-  "userMessage": "What is the current political situation?"
-}
-```
-
-**Réponse 200 OK**
-```json
-{
-  "response": "Morocco, with its capital Rabat and a population of approximately 37 million, ..."
-}
-```
-
-*(le service récupère d'abord les données factuelles du pays via `CountryDataService`, les injecte dans le system prompt, puis appelle Gemini via `gemini-2.5-flash`)*
-
-⚠️ Vérifie les noms exacts des champs de `ChatRequest` dans ton code (`countryCode` / `userMessage`) — à ajuster si tes noms de champs diffèrent.
-
----
-
-## 6. Données pays (`com.worldwatch.countries`)
-
-⚠️ **Aucun endpoint REST public n'existe encore pour ce module.**
-
-`CountryDataService` est actuellement **utilisé uniquement en interne** par `AiChatServiceImpl` (context stuffing pour le chatbot) — il n'est pas exposé directement au frontend.
-
-Si tu veux que le frontend puisse aussi afficher capitale/population/devise indépendamment du chat (ce que décrit ton cahier des charges), il manque un `CountryController` du type :
+### 2.1 Aperçu rapide (usage interne + affichage simple)
 
 ```
 GET /api/countries/{code}
 ```
 
-Dis-moi si tu veux qu'on l'ajoute — c'est rapide vu que `CountryDataService` existe déjà, il ne manque qu'un controller fin qui l'expose.
+Exemple : `GET /api/countries/MA`
+
+**Réponse 200 OK**
+```json
+{
+  "name": "Morocco",
+  "capital": "Rabat",
+  "currency": "Moroccan dirham (MAD)",
+  "population": 36910558
+}
+```
+
+*(source : countries.dev — utilisé aussi en interne par le chatbot IA pour le context stuffing)*
+
+---
+
+### 2.2 Détails enrichis (nouveau)
+
+```
+GET /api/countries/{code}/details
+```
+
+Exemple : `GET /api/countries/MA/details`
+
+**Réponse 200 OK**
+```json
+{
+  "countryCode": "MA",
+  "name": "Morocco",
+  "capital": "Rabat",
+  "currency": "Moroccan dirham (MAD)",
+  "currencyCode": "MAD",
+  "currencySymbol": "د.م.",
+  "population": 37254695,
+  "landAreaKm2": 446550.0,
+  "flagSvg": "https://flags.restcountries.com/v5/svg/ma.svg",
+  "flagPng": "https://flags.restcountries.com/v5/w640/ma.png",
+  "mapsUrl": "https://goo.gl/maps/6oMv3dyBZg3iaXQ5A",
+  "timezones": ["UTC"],
+  "unMember": true,
+  "officialLanguages": ["Arabic", "Standard Moroccan Tamazight"],
+  "borderCountries": ["DZA", "ESH", "ESP"],
+  "region": "Africa",
+  "subregion": "Northern Africa",
+  "governmentType": "Unitary parliamentary semi-constitutional monarchy"
+}
+```
+
+*(source : [REST Countries v5](https://restcountries.com/docs/countries) — officielle, 500 requêtes/mois gratuites, clé API requise)*
+
+💡 **Utilise `currencyCode` (pas `currency`) pour appeler `/api/exchange-rate`** — c'est déjà le code ISO pur (`MAD`), pas besoin de le parser depuis la string lisible.
+
+**Erreurs possibles**
+- `404` : code pays inconnu
+
+⚠️ **Limitation connue** : `headOfState` n'est pas disponible sur le plan gratuit de REST Countries (champ premium `leaders`). Aucun champ équivalent n'est renvoyé par cet endpoint.
+
+---
+
+## 3. Favoris (`com.worldwatch.favorites`) — protégé
+
+Toutes les routes ci-dessous exigent `Authorization: Bearer <token>`.
+
+### 3.1 Ajouter un favori
+```
+POST /api/favorites?countryCode=MA&countryName=Morocco
+```
+**Réponse 200 OK**
+```json
+{ "id": 1, "countryCode": "MA", "countryName": "Morocco", "ownerId": "test" }
+```
+
+### 3.2 Lister mes favoris
+```
+GET /api/favorites
+```
+**Réponse 200 OK**
+```json
+[{ "id": 1, "countryCode": "MA", "countryName": "Morocco", "ownerId": "test" }]
+```
+
+### 3.3 Supprimer un favori
+```
+DELETE /api/favorites/{id}
+```
+**Réponse** : `200 OK` (pas de contenu)
+
+---
+
+## 4. Taux de change (`com.worldwatch.exchange`)
+
+```
+GET /api/exchange-rate?currency=MAD&base=USD
+```
+
+| Param | Obligatoire | Défaut |
+|---|---|---|
+| `currency` | oui | — |
+| `base` | non | `USD` |
+
+**Réponse 200 OK**
+```json
+{ "baseCurrency": "USD", "targetCurrency": "MAD", "rate": 9.85, "date": "latest" }
+```
+
+*(source : ExchangeRate-API, 160+ devises)*
+
+---
+
+## 5. Actualités (`com.worldwatch.news`)
+
+```
+GET /api/news?country=Morocco
+```
+
+**Réponse 200 OK**
+```json
+[{
+  "title": "...",
+  "description": "...",
+  "url": "...",
+  "source": "...",
+  "publishedAt": "2026-08-12T10:00:00Z"
+}]
+```
+
+*(recherche via `qInTitle` + `sortBy=relevancy`)*
+
+---
+
+## 6. Météo (`com.worldwatch.weather`)
+
+```
+GET /api/weather?city=Rabat
+```
+
+**Réponse 200 OK**
+```json
+{
+  "location": "Rabat",
+  "temperature": 24.3,
+  "windSpeed": 12.4,
+  "condition": "Partly cloudy",
+  "time": "2026-09-12T14:00"
+}
+```
+
+*(source : Open-Meteo, sans clé API)*
+
+---
+
+## 7. Chatbot IA (`com.worldwatch.ai`)
+
+```
+POST /api/chat
+Content-Type: application/json
+```
+
+**Body**
+```json
+{ "countryCode": "MA", "userMessage": "What's the weather like right now?" }
+```
+
+**Réponse 200 OK**
+```json
+{ "answer": "Right now in Rabat it's 24°C and partly cloudy..." }
+```
+
+**Comportement** : l'IA reçoit en contexte vérifié population/capitale/devise/météo réelle du pays sélectionné (jamais contredits), mais répond librement sur tout autre sujet (autres pays, culture, voyage, finance) grâce à ses connaissances générales.
 
 ---
 
 ## Récapitulatif des endpoints
 
-| Méthode | Route | Auth requise | Statut |
-|---|---|---|---|
-| POST | `/api/auth/register` | ❌ | ✅ |
-| POST | `/api/auth/login` | ❌ | ✅ |
-| POST | `/api/favorites` | ✅ | ✅ |
-| GET | `/api/favorites` | ✅ | ✅ |
-| DELETE | `/api/favorites/{id}` | ✅ | ✅ |
-| GET | `/api/exchange-rate` | ✅ | ✅ |
-| GET | `/api/news` | ✅ | ✅ |
-| POST | `/api/chat` | ✅ | ✅ |
-| GET | `/api/countries/{code}` | — | ❌ manquant |
+| Méthode | Route | Auth requise |
+|---|---|---|
+| POST | `/api/auth/register` | ❌ |
+| POST | `/api/auth/login` | ❌ |
+| GET | `/api/countries/{code}` | ❌ |
+| GET | `/api/countries/{code}/details` | ❌ |
+| POST | `/api/favorites` | ✅ |
+| GET | `/api/favorites` | ✅ |
+| DELETE | `/api/favorites/{id}` | ✅ |
+| GET | `/api/exchange-rate` | ❌ |
+| GET | `/api/news` | ❌ |
+| GET | `/api/weather` | ❌ |
+| POST | `/api/chat` | ❌ |
+
+---
+
+## ⚠️ Point ouvert à discuter en groupe
+
+`/api/countries/{code}` (aperçu simple) utilise encore `countries.dev`, alors que `/api/countries/{code}/details` (enrichi) utilise désormais l'API officielle REST Countries v5. Les deux sources coexistent pour l'instant — à terme, on pourrait migrer l'endpoint simple vers REST Countries v5 aussi, pour n'avoir qu'une seule source de vérité. Pas urgent, mais à trancher avant la soutenance.
