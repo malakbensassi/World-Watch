@@ -1,6 +1,7 @@
 package com.worldwatch.countries.internal;
 
 import com.worldwatch.countries.CountryDataService;
+import com.worldwatch.countries.CountryDetailsDto;
 import com.worldwatch.countries.CountryDto;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,5 +21,10 @@ class CountryController {
     @GetMapping("/{code}")
     CountryDto getCountry(@PathVariable String code) {
         return countryDataService.getCountryData(code);
+    }
+
+    @GetMapping("/{code}/details")
+    CountryDetailsDto getCountryDetails(@PathVariable String code) {
+        return countryDataService.getCountryDetails(code);
     }
 }
