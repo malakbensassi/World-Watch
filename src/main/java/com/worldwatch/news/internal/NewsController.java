@@ -23,4 +23,9 @@ class NewsController {
     List<ArticleDto> getNews(@RequestParam String country) {
         return newsService.getRecentNews(country);
     }
+
+    @GetMapping("/finance")
+    List<ArticleDto> getFinanceNews(@RequestParam String country) {
+        return newsService.getFinanceNews(country);
+    }
 }
