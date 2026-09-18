@@ -52,11 +52,11 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/countries/**").permitAll()
-                        .requestMatchers("/api/exchange-rate").permitAll()
-                        .requestMatchers("/api/news").permitAll()
-                        .requestMatchers("/api/chat").permitAll()
+                        .requestMatchers("/api/exchange-rate/**").permitAll()
+                        .requestMatchers("/api/news/**").permitAll()
+                        .requestMatchers("/api/chat/**").permitAll()
                         .requestMatchers("/api/favorites/**").authenticated()
-                        .requestMatchers("/api/weather").permitAll()
+                        .requestMatchers("/api/weather/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

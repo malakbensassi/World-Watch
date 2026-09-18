@@ -7,47 +7,6 @@ export default function NewsWidget({ countryName }) {
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const getFallbackFinanceArticles = (cName) => [
-    {
-      title: `${cName} Macroeconomic Outlook: Central Bank Rate Strategy & Inflation Forecast`,
-      description: `Financial market strategists evaluate sovereign bond yields and foreign currency stability amidst resilient domestic fiscal expansion.`,
-      source: 'Yahoo Finance Wire',
-      publishedAt: new Date(Date.now() - 3600000 * 1).toISOString(),
-      url: 'https://finance.yahoo.com'
-    },
-    {
-      title: `Foreign Direct Investment (FDI) & Infrastructure Equity Surge in ${cName}`,
-      description: `Institutional asset managers report accelerated private equity allocations in renewable energy concessions, port logistics, and tech ventures.`,
-      source: 'Bloomberg Markets',
-      publishedAt: new Date(Date.now() - 3600000 * 4).toISOString(),
-      url: 'https://finance.yahoo.com'
-    },
-    {
-      title: `${cName} Export Trade Dynamics: Industrial Manufacturing & Commodities Strong`,
-      description: `High-value automotive assembly, aerospace components, and mineral derivatives boost national foreign exchange reserves.`,
-      source: 'Reuters Financial',
-      publishedAt: new Date(Date.now() - 3600000 * 8).toISOString(),
-      url: 'https://finance.yahoo.com'
-    }
-  ];
-
-  const getFallbackGeopoliticalArticles = (cName) => [
-    {
-      title: `${cName} Strengthens Bilateral Diplomatic Accords & Maritime Corridors`,
-      description: `Foreign ministries ratify bilateral defense and commercial shipping security treaties to deepen regional supply chain integration.`,
-      source: 'Global Geopolitics Dispatch',
-      publishedAt: new Date(Date.now() - 3600000 * 3).toISOString(),
-      url: 'https://news.google.com'
-    },
-    {
-      title: `Regional Security Council Reviews Strategic Stability across ${cName}`,
-      description: `Multilateral delegates commend counter-terrorism resilience and cooperative crisis mitigation frameworks across adjacent borders.`,
-      source: 'International Herald',
-      publishedAt: new Date(Date.now() - 3600000 * 7).toISOString(),
-      url: 'https://news.google.com'
-    }
-  ];
-
   const loadNews = async () => {
     if (!countryName) return;
     setLoading(true);
